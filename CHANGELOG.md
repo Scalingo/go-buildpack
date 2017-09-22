@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## v74 (2017-09-14)
+
+* Promote go1.9 to supported.
+
+## v73 (2017-08-25)
+
+* Add go1.9 and default go1.9 to it.
+
+## v72 (2017-08-09)
+
+Add go1.9rc2 and default go1.9 to it.
+
+## v71 (2017-07-25)
+
+Add go1.9rc1 and default go1.9 to it.
+
 ## v70 (2017-06-26)
 
 Add go1.9beta2 and default go1.9 to it.

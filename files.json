@@ -1,4 +1,16 @@
 {
+    "go1.9.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz",
+        "SHA": "d70eadefce8e160638a9a6db97f7192d8463069ab33138893ad3bf31b0650a79"
+    },
+    "go1.9rc2.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.9rc2.linux-amd64.tar.gz",
+        "SHA": "0d17d440f02505d8fbf6becb777175c242486c1d71046705876dcd20e0574002"
+    },
+    "go1.9rc1.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.9rc1.linux-amd64.tar.gz",
+        "SHA": "a8ea2ac09878b7a5ac04fe52f144cdc64ab637230638af6975c0f1facbba3ec2"
+    },
     "go1.9beta2.linux-amd64.tar.gz": {
         "URL": "https://storage.googleapis.com/golang/go1.9beta2.linux-amd64.tar.gz",
         "SHA": "023f778f063d2234e7c95f572a92298b307807693f7e045a88c90ecd7a08f29d"
@@ -200,6 +212,10 @@
     "gb-0.4.4-pre.tar.gz": {
         "URL": "created manually from commit 137520c0f2217d8b7f934dc307865488ef31b551",
         "SHA": "f8b3847558d45f8d3a9f8252ab353d5793f1622e78138ec974ea956d7ae4d9d0"
+    },
+    "gb-0.4.4.tar.gz": {
+        "URL": "https://github.com/constabulary/gb/archive/v0.4.4.tar.gz",
+        "SHA": "c7993ae1994ad85cbe35b833d36a137772599fe7ed720edec2d76ebf3fc4313b"
     },
     "gb-0.4.3.tar.gz": {
         "URL": "https://github.com/constabulary/gb/archive/v0.4.3.tar.gz",

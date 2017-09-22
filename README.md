@@ -75,7 +75,7 @@ top level json keys:
   is chosen. Currently the only supported tool is `github.com/mattes/migrate` at
   `v3.0.0` (also the default version).
 
-Example with everything, for a project using `go1.8`, located at
+Example with everything, for a project using `go1.9`, located at
 `$GOPATH/src/github.com/Scalingo/sample-go-martini` and requiring a single package
 spec of `./...` to install.
 
@@ -85,7 +85,7 @@ spec of `./...` to install.
     "rootPath": "github.com/Scalingo/sample-go-martini",
     "scalingo": {
         "install" : [ "./..." ],
-        "goVersion": "go1.8"
+        "goVersion": "go1.9"
          },
     ...
 }
@@ -109,7 +109,7 @@ latest released minor version in that series. Setting `$GOVERSION` to a specific
 minor Go version will pin Go to that version. Examples:
 
 ```console
-$ scalingo env-set GOVERSION=go1.8   # Will use go1.8.X, Where X is that latest minor release in the 1.8 series
+$ scalingo env-set GOVERSION=go1.9   # Will use go1.9.X, Where X is that latest minor release in the 1.9 series
 $ scalingo env-set GOVERSION=go1.7.5 # Pins to go1.7.5
 ```
 
