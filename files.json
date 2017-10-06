@@ -1,4 +1,8 @@
 {
+    "go1.9.1.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.9.1.linux-amd64.tar.gz",
+        "SHA": "07d81c6b6b4c2dcf1b5ef7c27aaebd3691cdb40548500941f92b221147c5d9c7"
+    },
     "go1.9.linux-amd64.tar.gz": {
         "URL": "https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz",
         "SHA": "d70eadefce8e160638a9a6db97f7192d8463069ab33138893ad3bf31b0650a79"
@@ -18,6 +22,10 @@
     "go1.9beta1.linux-amd64.tar.gz": {
         "URL": "https://storage.googleapis.com/golang/go1.9beta1.linux-amd64.tar.gz",
         "SHA": "85719a2c704ad1352052e185c760d7c65b9d8a18b491287a7e5f6775ccc27d3b"
+    },
+    "go1.8.4.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.8.4.linux-amd64.tar.gz",
+        "SHA": "0ef737a0aff9742af0f63ac13c97ce36f0bbc8b67385169e41e395f34170944f"
     },
     "go1.8.3.linux-amd64.tar.gz": {
         "URL": "https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz",
@@ -233,5 +241,20 @@
     "migrate-v3.0.0-linux-amd64.tar.gz": {
         "URL": "https://github.com/mattes/migrate/releases/download/v3.0.0/migrate.linux-amd64.tar.gz",
         "SHA": "13fbabe2db0ee3f79611c8171b0596939a3f384025f62925ed136267681e4fbf"
+    },
+    "tq-v0.4-linux-amd64": {
+        "URL": "https://github.com/heroku/tq/releases/download/v0.4/tq-v0.4-linux-amd64",
+        "SHA": "36d33a30e2cafe4b747b8de2449185a13239fb6da2887dde74f3d390fc639e3b",
+        "LocalName": "tq"
+    },
+    "tq-v0.5-linux-amd64": {
+        "URL": "https://github.com/heroku/tq/releases/download/v0.5/tq-v0.5-linux-amd64",
+        "SHA": "f22ab0a1694fb329f96e564f1f0b44876b2a60023ef26b1b42a15fb94287378e",
+        "LocalName": "tq"
+    },
+    "dep-linux-amd64": {
+        "URL": "https://github.com/golang/dep/releases/download/v0.3.1/dep-linux-amd64",
+        "SHA": "408b970c0acacad309d350fc46d718e4a8885b588eca71f4d73e5d6c521ef944",
+        "LocalName": "dep"
     }
 }

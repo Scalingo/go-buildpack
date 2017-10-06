@@ -10,7 +10,7 @@ There's also a hello world sample app at <https://github.com/Scalingo/sample-go-
 
 ## Example
 
-```
+```console
 $ ls -A1
 .git
 vendor
@@ -34,6 +34,7 @@ $ git push scalingo master
 
 This buildpack will detect your repository as Go if you are using either:
 
+- [dep][dep]
 - [govendor][govendor]
 - [glide][glide]
 - [GB][gb]
@@ -42,6 +43,48 @@ This buildpack will detect your repository as Go if you are using either:
 This buildpack adds a `paas` [build constraint][https://golang.org/pkg/go/build/], to enable
 Scalingo-specific code. See the [App Engine build constraints
 article][https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath] for more.
+
+## dep specifics
+
+The `Gopkg.toml` file allows for arbitrary, tool specific fields. This buildpack
+utilizes this feature to track build specific configuration which are encoded in
+the following way:
+
+- `metadata.scalingo['root-package']` (String): the root package name of the
+  packages you are pushing to Scalingo.You can find this locally with `go list -e
+  .`. There is no default for this and it must be specified.
+
+- `metadata.scalingo['go-version']` (String): the major version of go you would
+  like Scalingo to use when compiling your code: if not specified defaults to the
+  most recent supported version of Go.
+
+- `metadata.scalingo['install']` (Array of Strings): a list of the packages you
+  want to install. If not specified, this defaults to `["."]`. Other common
+  choices are: `["./cmd/..."]` (all packages and sub packages in the `cmd`
+  directory) and `["./..."]` (all packages and sub packages of the current
+  directory). The exact choice depends on the layout of your repository though.
+  Please note that `./...`, for versions of go < 1.9, includes any packages in
+  your `vendor` directory.
+
+- `metadata.scalingo['ensure']` (String): if this is set to `false` then `dep
+  ensure` is not run.
+
+- `metadata.scalingo['additional-tools']` (Array of Strings): a list of additional
+  tools that the buildpack is aware of that you want it to install. If the tool
+  has multiple versions an optional `@<version>` suffix can be specified to
+  select that specific version of the tool. Otherwise the buildpack's default
+  version is chosen. Currently the only supported tool is
+  `github.com/mattes/migrate` at `v3.0.0` (also the default version).
+
+```toml
+[metadata.scalingo]
+  root-package = "github.com/Scalingo/fixture"
+  go-version = "go1.8.3"
+  install = [ "./cmd/...", "./foo" ]
+  ensure = "false"
+  additional-tools = ["github.com/mattes/migrate"]
+...
+```
 
 ## govendor specifics
 
@@ -157,7 +200,7 @@ that tests have been added to the `test/run` script and any corresponding fixtur
 Requires docker.
 
 ```console
-$ make test
+make test
 ```
 
 ## Using with cgo
@@ -201,11 +244,10 @@ into the compiled executable.
 
 This buildpack also supports the testpack API.
 
-
 ## Deploying
 
 ```console
-$ make publish # && follow the prompts
+make publish # && follow the prompts
 ```
 
 ### New Go version
@@ -222,6 +264,7 @@ $ make publish # && follow the prompts
 [go]: http://golang.org/
 [buildpack]: http://doc.scalingo.com/buildpacks/
 [go-linker]: https://golang.org/cmd/ld/
+[dep]: https://github.com/golang/dep
 [godep]: https://github.com/tools/godep
 [govendor]: https://github.com/kardianos/govendor
 [gb]: https://getgb.io/

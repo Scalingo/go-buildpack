@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v75 (2017-10-05)
+
+* Preliminary [dep](https://github.com/golang/dep) support.
+* Update tq to v0.5
+* Add tq and dep to s3 to ease dep integration.
+* Update go to 1.9.1 & 1.8.4 & default to them - https://groups.google.com/forum/#!msg/golang-nuts/sHfMg4gZNps/a-HDgDDDAAAJ
+
 ## v74 (2017-09-14)
 
 * Promote go1.9 to supported.
