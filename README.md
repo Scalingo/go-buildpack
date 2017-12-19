@@ -189,6 +189,20 @@ with the following contents, adjusted as needed for your project's root path.
 }
 ```
 
+## Private Git Repos
+
+The buildpack installs a custom git credential handler. Any tool that shells out to git (most do) should be able to transparently use this feature. Note: It has only been tested with Github repos over https using personal access tokens.
+
+The custom git credential handler searches the application's config vars for vars that follow the following pattern: `GO_GIT_CRED__<PROTOCOL>__<HOSTNAME>`. Any periods (`.`) in the `HOSTNAME` must be replaces with double underscores (`__`).
+
+The value of a matching var will be used as the username. If the value contains a ":", the value will be split on the ":" and the left side will be used as the username and the right side used as the password. When no password is present, `x-oauth-basic` is used.
+
+The following example will cause git to use the `FakePersonalAccessTokenHere` as the username when authenticating to `github.com` via `https`:
+
+```console
+$ scalingo env-set GO_GIT_CRED__HTTPS__GITHUB__COM=FakePersoalAccessTokenHere
+```
+
 ## Hacking on this Buildpack
 
 To change this buildpack, fork it on GitHub & push changes to your fork. Ensure

@@ -346,6 +346,10 @@ setupGOPATH() {
 }
 
 loadEnvDir "${env_dir}"
+
+setGitCredHelper "${env_dir}"
+trap clearGitCredHelper INT TERM EXIT
+
 determineTool
 
 ver=$(expandVer $ver)

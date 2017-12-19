@@ -1,17 +1,27 @@
 {
   "Go": {
-    "Supported": ["go1.8.3", "go1.9"],
-    "DefaultVersion": "go1.9",
+    "Supported": ["go1.8.5", "go1.9.2"],
+    "DefaultVersion": "go1.9.2",
     "VersionExpansion": {
-      "go1.9": "go1.9.1",
-      "go1.8": "go1.8.4",
+      "go1.9.0": "go1.9",
+      "go1.9": "go1.9.2",
+      "go1.8.0": "go1.8",
+      "go1.8": "go1.8.5",
+      "go1.7.0":"go1.7",
       "go1.7": "go1.7.6",
+      "go1.6.0":"go1.6",
       "go1.6": "go1.6.4",
+      "go1.5.0":"go1.5",
       "go1.5": "go1.5.4",
+      "go1.4.0":"go1.4",
       "go1.4": "go1.4.3",
+      "go1.3.0":"go1.3",
       "go1.3": "go1.3.3",
+      "go1.2.0":"go1.2",
       "go1.2": "go1.2.2",
+      "go1.1.0":"go1.1",
       "go1.1": "go1.1.2",
+      "go1.0":"go1",
       "go1": "go1.0.3"
     },
     "NeedsConcurrency": [
@@ -47,5 +57,24 @@
   },
   "tq": {
     "DefaultVersion": "v0.5"
+  },
+  "test": {
+    "assets": [
+      "jq-linux64",
+      "go1.9.2.linux-amd64.tar.gz",
+      "go1.8.3.linux-amd64.tar.gz",
+      "go1.7.6.linux-amd64.tar.gz",
+      "go1.6.4.linux-amd64.tar.gz",
+      "go1.4.3.linux-amd64.tar.gz",
+      "govendor_linux_amd64",
+      "glide-v0.12.3-linux-amd64.tar.gz",
+      "mercurial-3.9.tar.gz",
+      "gb-0.4.4.tar.gz",
+      "errors-0.8.0.tar.gz",
+      "godep_linux_amd64",
+      "migrate-v3.0.0-linux-amd64.tar.gz",
+      "tq-v0.5-linux-amd64",
+      "dep-linux-amd64"
+    ]
   }
 }
