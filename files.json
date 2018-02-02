@@ -1,4 +1,16 @@
 {
+    "go1.10beta2.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.10beta2.linux-amd64.tar.gz",
+        "SHA": "ab3abb7d731dd5ac7a06d5d5e64ef19946f57d4ce34555d262a87b8899901a93"
+    },
+    "go1.10beta1.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.10beta1.linux-amd64.tar.gz",
+        "SHA": "ec7a10b5bf147a8e06cf64e27384ff3c6d065c74ebd8fdd31f572714f74a1055"
+    },
+    "go1.9.3.linux-amd64.tar.gz": {
+        "URL": "https://storage.googleapis.com/golang/go1.9.3.linux-amd64.tar.gz",
+        "SHA": "a4da5f4c07dfda8194c4621611aeb7ceaab98af0b38bfb29e1be2ebb04c3556c"
+    },
     "go1.9.2.linux-amd64.tar.gz": {
         "URL": "https://storage.googleapis.com/golang/go1.9.2.linux-amd64.tar.gz",
         "SHA": "de874549d9a8d8d8062be05808509c09a88a248e77ec14eb77453530829ac02b"
@@ -263,6 +275,22 @@
     "dep-linux-amd64": {
         "URL": "https://github.com/golang/dep/releases/download/v0.3.1/dep-linux-amd64",
         "SHA": "408b970c0acacad309d350fc46d718e4a8885b588eca71f4d73e5d6c521ef944",
+        "LocalName": "dep",
+        "Comment": "This is here for backwards compat. Remove after a while."
+    },
+    "dep-v0.3.1-linux-amd64": {
+        "URL": "https://github.com/golang/dep/releases/download/v0.3.1/dep-linux-amd64",
+        "SHA": "408b970c0acacad309d350fc46d718e4a8885b588eca71f4d73e5d6c521ef944",
+        "LocalName": "dep"
+    },
+    "dep-v0.4.0-linux-amd64": {
+        "URL":"https://github.com/golang/dep/releases/download/v0.4.0/dep-linux-amd64",
+        "SHA":"228088ab0fe15dff6779f4e48223a6dd39544d3348b2f43b28b96eae27f341b5",
+        "LocalName": "dep"
+    },
+    "dep-v0.4.1-linux-amd64": {
+        "URL":"https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64",
+        "SHA":"31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315",
         "LocalName": "dep"
     }
 }

@@ -13,6 +13,7 @@ source "${buildpack}/lib/common.sh"
 ensureInPath "jq-linux64" "${cache}/.jq/bin"
 
 DefaultGoVersion="$(<${DataJSON} jq -r '.Go.DefaultVersion')"
+DepVersion="$(<${DataJSON} jq -r '.Dep.DefaultVersion')"
 GlideVersion="$(<${DataJSON} jq -r '.Glide.DefaultVersion')"
 GovendorVersion="$(<${DataJSON} jq -r '.Govendor.DefaultVersion')"
 GBVersion="$(<${DataJSON} jq -r '.GB.DefaultVersion')"
@@ -399,8 +400,8 @@ case "${TOOL}" in
         unset GIT_DIR # unset git dir or it will mess with goinstall
         cd "${src}"
 
-        if [ "$(< ${depTOML} tq '$.metadata.scalingo["ensure"]')" != "false" ]; then
-            ensureInPath "dep-linux-amd64" "${cache}/dep/bin"
+        if [ "$(< ${depTOML} tq '$.metadata.heroku["ensure"]')" != "false" ]; then
+            ensureInPath "dep-${DepVersion}-linux-amd64" "${cache}/dep/bin"
             step "Fetching any unsaved dependencies (dep ensure)"
             dep ensure
         fi

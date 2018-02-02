@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v81 (2018-01-26)
+
+* Bump dep to v0.4.0
+* Bump dep to v0.4.1
+
+## v80 (2018-01-24)
+
+* Add go1.9.3 and make it the default
+
+## v79 (2018-01-17)
+
+* Add go1.10beta1 and go1.10beta2
+
 ## v78 (2017-10-26)
 
 * Add go1.9.2 and go1.8.5 and default go1.9/go1.8 to them.
