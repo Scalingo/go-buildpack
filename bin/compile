@@ -34,7 +34,7 @@ handleDefaultPkgSpec() {
         warn ""
         case "${TOOL}" in
             dep)
-                warn "To install a different package spec set 'metadata.scalingo.pkg-spec' in 'Gopkg.toml'"
+                warn "To install a different package spec set 'metadata.scalingo.install' in 'Gopkg.toml'"
                 warn ""
                 warn "For more details see: http://doc.scalingo.com/languages/go-dependencies-with-dep"
                 warn ""
