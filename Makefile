@@ -7,6 +7,10 @@ GO_BUCKET_URL := file:///buildpack/test/assets
 .DEFAULT: test
 .NOTPARALLEL: docker test-assets
 
+# make ACCESS_KEY="..." SECRET_KEY="...." sync
+sync:
+	ACCESS_KEY=$(ACCESS_KEY) SECRET_KEY=$(SECRET_KEY) ./bin/sync-files.sh
+
 test: BASH_COMMAND := test/run
 test: docker
 
@@ -14,6 +18,10 @@ shell: docker
 
 quick: BASH_COMMAND := test/quick; bash
 quick: docker
+
+# make FIXTURE=<fixture name> compile
+compile: BASH_COMMAND := test/quick compile $(FIXTURE); bash
+compile: docker
 
 publish:
 	bin/publish heroku/go

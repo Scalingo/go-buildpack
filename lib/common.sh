@@ -249,7 +249,7 @@ determineTool() {
         name=$(<${depTOML} tq '$.metadata.scalingo["root-package"]')
         if [ -z "${name}" ]; then
             err "The 'metadata.scalingo[\"root-package\"]' field is not specified in 'Gopkg.toml'."
-            err "root-package must be set to the root pacakage name used by your repository."
+            err "root-package must be set to the root package name used by your repository."
             err ""
             err "For more details see: http://doc.scalingo.com/languages/go-dependencies-with-dep.html"
             exit 1

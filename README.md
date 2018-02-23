@@ -217,6 +217,16 @@ Requires docker.
 make test
 ```
 
+### Compiling a fixture
+
+Requires docker.
+
+```console
+make FIXTURE=<fixture name> compile
+```
+
+You will then be dropped into a bash prompt in the container in which the fixture was compiled in.
+
 ## Using with cgo
 
 The buildpack supports building with C dependencies via [cgo][cgo]. You can set
@@ -269,10 +279,11 @@ make publish # && follow the prompts
 1. Edit `files.json`, and add an entry for the new version, including the SHA,
    which can be copied from golang.org.
 1. Update `data.json`, to update the `VersionExpansion` object.
-1. run `ACCESS_KEY='THE KEY' SECRET_KEY='THE SECRET KEY' bin/sync-files.sh`.
+1. run `make ACCESS_KEY='THE KEY' SECRET_KEY='THE SECRET KEY' sync`.
    This will download everything from the bucket, plus any missing files from
    their source locations, and verify their SHAS, then upload anything missing
-   from the bucket back to the s3 bucket.
+   from the bucket back to the s3 bucket. If a file doesn't verify this will
+   error and it needs to be corrected.
 1. Commit and push.
 
 [go]: http://golang.org/
