@@ -275,6 +275,16 @@ determineTool() {
         name=$(<${godepsJSON} jq -r .ImportPath)
         ver=${GOVERSION:-$(<${godepsJSON} jq -r .GoVersion)}
         warnGoVersionOverride
+        if [ "${ver}" = "null" -o -z "${ver}" ]; then
+            ver=${DefaultGoVersion}
+            warn "The 'GoVersion' field is not specified in 'Godeps/Godeps.toml'."
+            warn ""
+            warn "Defaulting to ${ver}"
+            warn ""
+            warn "For more details see: https://doc.scalingo.com/languages/go/godep"
+            warn ""
+        fi
+
     elif [ -f "${vendorJSON}" ]; then
         TOOL="govendor"
         step "Checking vendor/vendor.json file."
