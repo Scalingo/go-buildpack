@@ -293,6 +293,11 @@ ensureGo() {
 
     export GOROOT="${goPath}"
     PATH="${goPath}/bin:${PATH}"
+
+    # Export GOCACHE if Go >= 1.10
+    if go env | grep -q '^GOCACHE='; then
+      export GOCACHE="${cache}/go-build-cache"
+    fi
 }
 
 setGoVersionFromEnvironment() {
@@ -379,7 +384,7 @@ mkdir -p "${build}/bin"
 FLAGS=(-tags paas)
 if [ -n "${GO_LINKER_SYMBOL}" -a -n "${GO_LINKER_VALUE}" ]; then
     case "${ver}" in
-        go1.0*|go1.1*|go1.2*|go1.3*|go1.4*)
+        go1|go1.0.*|go1.1|go1.1.*|go1.2|go1.2.*|go1.3|go1.3.*|go1.4|go1.4.*)
             xval="${GO_LINKER_SYMBOL} ${GO_LINKER_VALUE}"
         ;;
         *)

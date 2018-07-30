@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## v89 (2018-06-12)
+* GOCACHE support
+
+## v88 (2018-06-12)
+
+* Add go1.10.3 and go1.9.7
+* Default to go1.10.3
+* go1.10 expands to go1.10.3 and go1.9 expands to go1.9.7
+
+## v87 (2018-05-03)
+
+* Add go1.10.2 and go1.9.6
+* Default to go1.10.2
+* go1.10 expands to go1.10.2 and go1.9 expands to go1.9.6
+
+## v86 (2018-04-17)
+
+* Add go1.10.1 and go1.9.5
+* Default to go1.10.1
+* go1.10 expands to go1.10.1 and go1.9 expands to go1.9.5
+* Deprecate go1.8*
+
+## v85 (2018-02-23)
+
+* Check to see if the buildpack knows about a file before trying to download it. Fixes #227.
+* Fixed GO_LINKER_SYMBOL handling for go1.10+ (Thanks @djui)
+
 ## v84 (2018-02-16)
 
 * Better naked version expansion that allows not only for 1.9 -> go1.9.4, but also 1.9.4 -> go1.9.4, which was missing previously.
