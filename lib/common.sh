@@ -92,10 +92,18 @@ downloadFile() {
     local localName="$(determinLocalFileName "${fileName}")"
     local targetFile="${targetDir}/${localName}"
 
+    local url="${BucketURL}/${fileName}"
+    if [ "${fileName}" != "jq-linux64" ]; then #jq is special cased here because we can't jq until we have jq'
+      local url="$(<"${FilesJSON}" jq -r '."'${fileName}'".URL')"
+      if [ "${url}" = "null" -o -z "${url}" ] ; then
+        url="${BucketURL}/${fileName}"
+      fi
+    fi
+
     mkdir -p "${targetDir}"
     pushd "${targetDir}" &> /dev/null
         start "Fetching ${localName}"
-            ${CURL} -O "${BucketURL}/${fileName}"
+            ${CURL} -O "${url}"
             if [ "${fileName}" != "${localName}" ]; then
                 mv "${fileName}" "${localName}"
             fi
