@@ -14,6 +14,7 @@ depTOML="${build}/Gopkg.toml"
 godepsJSON="${build}/Godeps/Godeps.json"
 vendorJSON="${build}/vendor/vendor.json"
 glideYAML="${build}/glide.yaml"
+goMOD="${build}/go.mod"
 
 steptxt="----->"
 YELLOW='\033[1;33m'
@@ -80,9 +81,6 @@ downloadFile() {
         err "The buildpack tracks and validates the SHA256 sums of the files"
         err "it uses. Because the buildpack doesn't know about the file"
         err "it likely won't be able to obtain a copy and validate the SHA."
-        err ""
-        err "To find out more info about this error please visit:"
-        err "    https://devcenter.heroku.com/articles/unknown-go-buildack-files"
         err ""
         exit 1
     fi
@@ -275,7 +273,11 @@ setGoVersionFromEnvironment() {
 }
 
 determineTool() {
-    if [ -f "${depTOML}" ]; then
+    if [ -f "${goMOD}" ]; then
+        TOOL="gomodules"
+        ver=${GOVERSION:-$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' ${goMOD})}
+        warnGoVersionOverride
+    elif [ -f "${depTOML}" ]; then
         TOOL="dep"
         ensureInPath "tq-${TQVersion}-linux-amd64" "${cache}/.tq/bin"
         name=$(<${depTOML} tq '$.metadata.scalingo["root-package"]')
@@ -342,7 +344,7 @@ determineTool() {
         TOOL="gb"
         setGoVersionFromEnvironment
     else
-        err "dep, Godep, GB or govendor are required. For instructions:"
+        err "Go modules, dep, Godep, GB or govendor are required. For instructions:"
         err "http://doc.scalingo.com/languages/go/"
         exit 1
     fi

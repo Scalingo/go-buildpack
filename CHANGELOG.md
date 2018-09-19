@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v92 (2018-08-27)
+* Add go1.11 and mark it as supported
+* Add go1.10.4 and make it the default, supported version
+
+## v91 (2018-08-24)
+* Add go1.11rc2 (unsupported) for experimenters
+* Add basic support for go modules (unsupported) for experimenters
+* Adds support for Golang Migrate (github.com/golang-migrate/migrate) as an additional tool
+* Deprecates support for Mattes Migrate (is now Golang Migrate)
+
+## v90 (2018-08-16)
+* Add go1.11beta1 (unsupported) for experimenters
+* Add go1.11beta2 (unsupported) for experimenters
+* Add go1.11rc1 (unsupported) for experimenters
+
 ## v89 (2018-06-12)
 * GOCACHE support
 

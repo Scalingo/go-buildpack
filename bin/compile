@@ -20,12 +20,13 @@ GBVersion="$(<${DataJSON} jq -r '.GB.DefaultVersion')"
 PkgErrorsVersion="$(<${DataJSON} jq -r '.PkgErrors.DefaultVersion')"
 MercurialVersion="$(<${DataJSON} jq -r '.HG.DefaultVersion')"
 MattesMigrateVersion="$(<${DataJSON} jq -r '.MattesMigrate.DefaultVersion')"
+GolangMigrateVersion="$(<${DataJSON} jq -r '.GolangMigrate.DefaultVersion')"
 TQVersion="$(<${DataJSON} jq -r '.tq.DefaultVersion')"
 # BazaarVersion="2.7.0"
 
 # For specified versions of Go we need to keep concurrency.sh
 needConcurrency() {
-    <"${DataJSON}" jq -e '.Go.NeedsConcurrency | indices(["'${1}'"]) | length | if . == 0 then false else true end' &> /dev/null
+    <"${DataJSON}" jq -e '.Go.NeedsConcurrency | any(. == "'${1}'")' &> /dev/null
 }
 
 handleDefaultPkgSpec() {
@@ -33,6 +34,13 @@ handleDefaultPkgSpec() {
         warn "Installing package '.' (default)"
         warn ""
         case "${TOOL}" in
+            gomodules)
+                warn "To install a different package spec add a comment in the following form to your \`go.mod\` file:"
+                warn "// +scalingo install ./cmd/..."
+                warn ""
+                warn "For more details see buildpack README https://github.com/Scalingo/go-buildpack"
+                warn ""
+            ;;
             dep)
                 warn "To install a different package spec set 'metadata.scalingo.install' in 'Gopkg.toml'"
                 warn ""
@@ -99,10 +107,33 @@ expandVer() {
 # Report deprecated versions to user
 # Use after expandVer
 reportVer() {
-    if <"${DataJSON}" jq -e '.Go.Supported | indices(["'${1}'"]) | length | if . > 0 then true else false end' &> /dev/null; then
+    local ver="${1}"
+
+    if [ "${TOOL}" = "gomodules" ]; then
+        warn ""
+        warn "Go modules are an experimental feature of go1.11"
+        warn "Any issues building code that uses Go modules should be"
+        warn "reported via: https://github.com/Scalingo/go-buildpack/issues"
+        warn ""
+        warn "Additional documentation for using Go modules with this buildpack"
+        warn "can be found here: https://github.com/Scalingo/go-buildpack#go-module-specifics"
+        warn ""
+        if ! <"${DataJSON}" jq  -e '.Go.SupportsModuleExperiment | any(. == "'${ver}'")' &> /dev/null; then
+            err "You are using ${ver}, which does not support the Go modules experiment"
+            err ""
+            err "Please add the following comment to your go.mod file to specify go1.11:"
+            err "// +scalingo goVersion go1.11"
+            err ""
+            err "Then commit and push again."
+           exit 1
+        fi
+    fi
+
+    if <"${DataJSON}" jq  -e '.Go.Supported | any(. == "'${ver}'")' &> /dev/null; then
         return
     fi
-    case $1 in
+
+    case $ver in
         devel*)
             warn ""
             warn "You are using a development build of Go."
@@ -114,7 +145,7 @@ reportVer() {
         ;;
         *)
             warn ""
-            warn "Deprecated or unsupported version of go ($1)"
+            warn "Deprecated or unsupported version of go ($ver)"
             warn "See http://doc.scalingo.com/languages/go/ for supported version information."
             warn ""
         ;;
@@ -159,44 +190,34 @@ ensureGlide() {
     fi
 }
 
-ensureMattesMigrate() {
-    local mmVersion="DEFAULT"
-    case "${TOOL}" in
-        govendor)
-            mmVersion="$(<${vendorJSON} jq -r '.scalingo.additionalTools | map(select(contains("github.com/mattes/migrate@"))) | if .[0] then .[0] else "@DEFAULT" end | split("@") | .[1]')"
-        ;;
-        dep)
-            f=$(<${depTOML} tq '$.metadata.scalingo["additional-tools"]' | grep ^github.com/mattes/migrate | sed s:github.com/mattes/migrate::)
-            f=${f:-"@DEFAULT"}
-            mmVersion="$(echo $f | cut -d @ -f 2)"
-        ;;
-    esac
-    if [[ "${mmVersion}" = "DEFAULT" ]]; then
-        mmVersion="${MattesMigrateVersion}"
-    fi
+ensureMigrateTool() {
+    local t="${1}"
+    local mtVersion="${2}"
     local tmp="$(mktemp -d)"
-    local mmPath="${cache}/mattesMigrate/${mmVersion}"
+    local mtPath="${cache}/${t}/${mtVersion}"
     local targetFile="${build}/bin/migrate"
 
     if [ -x "targetFile" ]; then
-        warning '"migrate" binary already exists in ~/bin, not installing github.com/mattes/migrate'
+        warning '"migrate" binary already exists in ~/bin, not installing '${t}
     else
-        rm -rf "$(dirname "${mmPath}")"
-        mkdir -p "${mmPath}"
-        step "Installing github.com/mattes/migrate ${mmVersion}"
-        ensureFile "migrate-${mmVersion}-linux-amd64.tar.gz" "${tmp}" "tar -C ${mmPath} -zxf"
-        mv "${mmPath}/migrate.linux-amd64" "${targetFile}"
+        rm -rf "$(dirname "${mtPath}")"
+        mkdir -p "${mtPath}"
+        step "Installing ${t} ${mtVersion}"
+        ensureFile "migrate-${mtVersion}-linux-amd64.tar.gz" "${tmp}" "tar -C ${mtPath} -zxf"
+        mv "${mtPath}/migrate.linux-amd64" "${targetFile}"
         chmod a+x "${targetFile}"
     fi
 }
 
-wantMattesMigrate() {
+wantAdditionalTool() {
+    local addt="${1}"
+
     case "${TOOL}" in
         govendor)
-            <${vendorJSON} jq -e '.scalingo.additionalTools | contains(["github.com/mattes/migrate"])' &> /dev/null
+            <${vendorJSON} jq -e '.scalingo.additionalTools | contains(["'${addt}'"])' &> /dev/null
         ;;
         dep)
-          <${depTOML} tq '$.metadata.scalingo["additional-tools"]' | grep "^github.com/mattes/migrate$" &> /dev/null
+          <${depTOML} tq '$.metadata.scalingo["additional-tools"]' | grep "^${addt}$" &> /dev/null
         ;;
         *)
             false
@@ -204,9 +225,45 @@ wantMattesMigrate() {
     esac
 }
 
+additionalToolVersion() {
+    local addt="${1}"
+    local default="${2}"
+
+    local tv=""
+    case "${TOOL}" in
+        govendor)
+            tv="$(<${vendorJSON} jq -r '.scalingo.additionalTools | map(select(contains("'${addt}'@"))) | if .[0] then .[0] else "@'${default}'" end | split("@") | .[1]')"
+        ;;
+        dep)
+            f=$(<${depTOML} tq '$.metadata.scalingo["additional-tools"]' | grep ^${addt} | sed s:${addt}::)
+            f=${f:-"@${default}"}
+            tv="$(echo $f | cut -d @ -f 2)"
+        ;;
+    esac
+
+    echo $tv
+}
+
+installGolangMigrateIfWanted() {
+    local t="github.com/golang-migrate/migrate"
+    if wantAdditionalTool $t; then
+        ensureMigrateTool $t $(additionalToolVersion $t ${GolangMigrateVersion})
+    fi
+}
+
 installMattesMigrateIfWanted() {
-    if wantMattesMigrate; then
-        ensureMattesMigrate
+    local t="github.com/mattes/migrate"
+    if wantAdditionalTool $t; then
+        warn ""
+        warn "Mattes Migrate is now Golang Migrate"
+        warn "Support for Mattes Migrate will be removed in the future"
+        warn "Please change the addition tool specification from 'github.com/mattes/migrate' to"
+        warn "'github.com/golang-migrate/migrate'"
+        warn ""
+        warn "Note: Supported Golang Migrate versions start at v3.4.0"
+        warn ""
+
+        ensureMigrateTool $t $(additionalToolVersion $t ${MattesMigrateVersion})
     fi
 }
 
@@ -398,6 +455,25 @@ export GOPATH
 
 # GB installation
 case "${TOOL}" in
+    gomodules)
+        pkgs=${GO_INSTALL_PACKAGE_SPEC:-$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "install" ) { print substr($0, index($0,$4)); exit }}' ${goMOD})}
+        if [ -z "${pkgs}" ]; then
+            pkgs="default"
+        fi
+        warnPackageSpecOverride
+        handleDefaultPkgSpec
+        massagePkgSpecForVendor
+
+        if [ -d "${build}/vendor" -a -s "${build}/go.sum" ]; then
+            FLAGS=(${FLAGS[@]} -mod=vendor)
+        fi
+
+        unset GIT_DIR # unset git dir or it will mess with goinstall
+        cd ${build}
+        export GOBIN="${build}/bin"
+        step "Running: go install -v ${FLAGS[@]} ${pkgs}"
+        go install -v "${FLAGS[@]}" ${pkgs} 2>&1
+    ;;
     dep)
         eval "$(setupGOPATH ${name})"
         depTOML="${src}/Gopkg.toml"
@@ -441,7 +517,7 @@ case "${TOOL}" in
             fi
         fi
         # Warn that GO15VENDOREXPIERMENT is set, but the go version does not support it.
-        if <"${DataJSON}" jq -e '.Go.SupportsVendorExperiment | indices(["'${ver}'"]) | length | if . == 0 then true else false end' &> /dev/null; then
+        if ! <"${DataJSON}" jq -e '.Go.SupportsVendorExperiment | any(. == "'${ver}'")' &> /dev/null; then
             if [ -n "${GO15VENDOREXPERIMENT}" ]; then
                 warn ""
                 warn "GO15VENDOREXPERIMENT is set, but is not supported by ${ver}"
@@ -526,6 +602,7 @@ case "${TOOL}" in
     ;;
 esac
 
+installGolangMigrateIfWanted
 installMattesMigrateIfWanted
 
 if [ -n "${src}" -a "${src}" != "${build}" -a -e "${src}/Procfile" ]; then

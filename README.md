@@ -34,6 +34,7 @@ $ git push scalingo master
 
 This buildpack will detect your repository as Go if you are using either:
 
+- [go modules][gomodules]
 - [dep][dep]
 - [govendor][govendor]
 - [glide][glide]
@@ -43,6 +44,36 @@ This buildpack will detect your repository as Go if you are using either:
 This buildpack adds a `paas` [build constraint][https://golang.org/pkg/go/build/], to enable
 Scalingo-specific code. See the [App Engine build constraints
 article][https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath] for more.
+
+## Go Module Specifics
+
+The `go.mod` file allows for arbitrary comments. This buildpack utilizes [build
+constraint](https://golang.org/pkg/go/build/#hdr-Build_Constraints) style
+comments to track Scalingo build specific configuration which is encoded in the
+following way:
+
+- `// +scalingo goVersion <version>`: the major version of go you would like scalingo
+  to use when compiling your code. If not specified defaults to the most recent
+  supported version of Go. Exact versions (ex `go1.9.4`) can also be specified
+  if needed, but is not generally recommended. Since Go doesn't release `.0`
+  versions, specifying a `.0` version will pin your code to the initial release
+  of the given major version (ex `go1.10.0` == `go1.10` w/o auto updating to
+  `go1.10.1` when it becomes available).
+
+  Example: `// +scalingo goVersion go1.11`
+
+- `// +scalingo install <packagespec>[, <packagespec>]`: a space seperated list of
+  the packages you want to install. If not specified, this defaults to `.`.
+  Other common choices are: `./cmd/...` (all packages and sub packages in the
+  `cmd` directory) and `./...` (all packages and sub packages of the current
+  directory). The exact choice depends on the layout of your repository though.
+
+  Example: `// +scalingo install ./cmd/... ./special`
+
+If a top level `vendor` directory exists and the `go.sum` file has a size
+greater than zero, `go install` is invoked with `-mod=vendor`, causing the build
+to skip downloading and checking of dependencies. This results in only the
+dependencies from the top level `vendor` directory being used.
 
 ## dep specifics
 
@@ -74,7 +105,7 @@ the following way:
   has multiple versions an optional `@<version>` suffix can be specified to
   select that specific version of the tool. Otherwise the buildpack's default
   version is chosen. Currently the only supported tool is
-  `github.com/mattes/migrate` at `v3.0.0` (also the default version).
+  `github.com/golang-migrate/migrate` at `v3.4.0` (also the default version).
 
 ```toml
 [metadata.scalingo]
@@ -82,7 +113,7 @@ the following way:
   go-version = "go1.8.3"
   install = [ "./cmd/...", "./foo" ]
   ensure = "false"
-  additional-tools = ["github.com/mattes/migrate"]
+  additional-tools = ["github.com/golang-migrate/migrate"]
 ...
 ```
 
@@ -115,8 +146,8 @@ top level json keys:
   the buildpack is aware of that you want it to install. If the tool has
   multiple versions an optional `@<version>` suffix can be specified to select
   that specific version of the tool. Otherwise the buildpack's default version
-  is chosen. Currently the only supported tool is `github.com/mattes/migrate` at
-  `v3.0.0` (also the default version).
+  is chosen. Currently the only supported tool is `github.com/golang-migrate/migrate` at
+  `v3.4.0` (also the default version).
 
 Example with everything, for a project using `go1.9`, located at
 `$GOPATH/src/github.com/Scalingo/sample-go-martini` and requiring a single package
@@ -277,8 +308,7 @@ make publish # && follow the prompts
 
 ### New Go version
 
-1. Edit `files.json`, and add an entry for the new version, including the SHA,
-   which can be copied from golang.org.
+1. Run `bin/add-version <version>`, eg `bin/add-version go1.11` to update `files.json`.
 1. Update `data.json`, to update the `VersionExpansion` object.
 1. run `make ACCESS_KEY='THE KEY' SECRET_KEY='THE SECRET KEY' sync`.
    This will download everything from the bucket, plus any missing files from
@@ -302,3 +332,4 @@ make publish # && follow the prompts
 [vendor.json]: https://github.com/kardianos/vendor-spec
 [gopgsqldriver]: https://github.com/jbarham/gopgsqldriver
 [glide]: https://github.com/Masterminds/glide
+[gomodules]: https://github.com/golang/go/wiki/Modules
