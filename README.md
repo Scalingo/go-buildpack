@@ -4,7 +4,7 @@ This is a buildpack for [Go][go].
 
 ## Getting Started
 
-Follow the guide at <http://doc.scalingo.com/languages/go>.
+Follow the guide at <https://doc.scalingo.com/languages/go/start>.
 
 There's also a hello world sample app at <https://github.com/Scalingo/sample-go-martini>.
 
@@ -41,9 +41,9 @@ This buildpack will detect your repository as Go if you are using either:
 - [GB][gb]
 - [Godep][godep]
 
-This buildpack adds a `paas` [build constraint][https://golang.org/pkg/go/build/], to enable
+This buildpack adds a `paas` [build constraint](https://golang.org/pkg/go/build/), to enable
 Scalingo-specific code. See the [App Engine build constraints
-article][https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath] for more.
+article](https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath) for more.
 
 ## Go Module Specifics
 
