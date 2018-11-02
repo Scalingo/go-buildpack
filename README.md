@@ -52,7 +52,7 @@ constraint](https://golang.org/pkg/go/build/#hdr-Build_Constraints) style
 comments to track Scalingo build specific configuration which is encoded in the
 following way:
 
-- `// +scalingo goVersion <version>`: the major version of go you would like scalingo
+- `// +scalingo goVersion <version>`: the major version of go you would like Scalingo
   to use when compiling your code. If not specified defaults to the most recent
   supported version of Go. Exact versions (ex `go1.9.4`) can also be specified
   if needed, but is not generally recommended. Since Go doesn't release `.0`
@@ -62,7 +62,7 @@ following way:
 
   Example: `// +scalingo goVersion go1.11`
 
-- `// +scalingo install <packagespec>[, <packagespec>]`: a space seperated list of
+- `// +scalingo install <packagespec>[, <packagespec>]`: a space separated list of
   the packages you want to install. If not specified, this defaults to `.`.
   Other common choices are: `./cmd/...` (all packages and sub packages in the
   `cmd` directory) and `./...` (all packages and sub packages of the current
