@@ -1,8 +1,12 @@
 # Go Buildpack Changelog
 
 ## Unreleased
+* Add go1.12 and default to it when go1.12 is specified.
+* Add go1.12 to the list of supported versions.
+* Deprecate go1.10*
 
 ## v101 (2019-02-21)
+* Track count of go versions being deployed
 
 ## v100 (2019-02-12)
 * Add go1.10.8 and default to it when go1.10 is specified
