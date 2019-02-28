@@ -1,13 +1,49 @@
 #!/usr/bin/env bash
 # See README.md for info on running these tests.
 
+testModWithHooks() {
+  fixture "mod-basic-with-hooks"
+
+  assertDetected
+
+  compile
+  assertCaptured "Installing go"
+  assertCaptured "-----> Running bin/go-pre-compile hook"
+  assertCaptured "PRE COMPILE"
+  assertCaptured "Running: go install -v -tags heroku ."
+  assertCaptured "github.com/heroku/fixture"
+  assertCaptured "-----> Running bin/go-post-compile hook"
+  assertCaptured "POST COMPILE"
+  assertCapturedSuccess
+  assertCompiledBinaryExists
+}
+
+testModNoVersion() {
+  fixture "mod-no-version"
+
+  assertDetected
+
+  compile
+  assertCaptured "Go modules are an experimental feature of go1.11"
+  assertCaptured "Any issues building code that uses Go modules should be"
+  assertCaptured "reported via: https://github.com/heroku/heroku-buildpack-go/issues"
+  assertCaptured "Additional documentation for using Go modules with this buildpack"
+  assertCaptured "can be found here: https://github.com/heroku/heroku-buildpack-go#go-module-specifics"
+  assertCaptured "The go.mod file for this project does not specify a Go version"
+  assertCaptured "Defaulting to go1.11"
+  assertCaptured "For more details see: https://devcenter.heroku.com/articles/go-apps-with-modules#build-configuration"
+
+  assertCapturedSuccess
+  assertCompiledBinaryExists
+}
+
 testModOldVersion() {
   fixture "mod-old-version"
 
   assertDetected
 
   compile
-  assertCapturedError 1 "Please add the following comment to your go.mod file to specify"
+  assertCapturedError 1 "Please add a comment in your go.mod file, or update an existing one, to specify a Go version that does like so"
 }
 
 testDepWithGolangMigrate() {
@@ -57,6 +93,16 @@ testModBasic() {
   #assertCaptured "github.com/heroku/fixture"
   assertCapturedSuccess
   assertCompiledBinaryExists
+}
+
+testModBasicWithoutProcfile() {
+  fixture "mod-basic-wo-procfile"
+
+  assertDetected
+
+  compile
+  assertCompiledBinaryExists
+  assertFile "web: fixture" "Procfile"
 }
 
 testModDeps() {
@@ -370,6 +416,13 @@ testTestPackGBWithTests() {
 }
 
 testGlideWithHgDep() {
+    if [ "${IMAGE}" = "heroku/cedar:14" ]; then
+    echo "!!!"
+    echo "!!! Skipping this test on heroku/cedar:14"
+    echo "!!! See: https://www.mercurial-scm.org/wiki/SecureConnections (3.1)"
+    echo "!!!"
+    return 0
+  fi
   fixture "glide-with-hg-dep"
 
   assertDetected

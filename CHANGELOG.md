@@ -2,6 +2,45 @@
 
 ## Unreleased
 
+## v101 (2019-02-21)
+
+## v100 (2019-02-12)
+* Add go1.10.8 and default to it when go1.10 is specified
+* Add go1.11.5 and default to it when go1.11 is specified or no version is specified.
+* Support go modules on Heroku CI (bin/test-compile & bin/test).
+* Add pre/post compile run hooks: /bin/go-pre-compile & /bin/go-post-compile
+* Add go1.12rc1 and default to it when go1.12 is specified.
+
+## v99 (2019-01-15)
+* Add go1.12beta1 and default to it when go1.12 is specified
+* Add go1.12beta2 and default to it when go1.12 is specified
+
+## v98 (2018-12-18)
+* Fix git Credential Helper for go module use (missing brackets) - @chrisroberts
+* Fix dep help text for package install - @andrewslotin
+* Add go1.11.3 & go1.11.4 using go1.11.4 as the default for go1.11
+* Add go1.10.6 & go1.10.7 using go1.10.7 as the default for go1.10
+
+## v97 (2018-11-05)
+* Re-apply v95
+
+## v96 (2018-11-05)
+* Rollback
+
+## v95 (2018-11-05)
+* Add go1.11.2, use it as the default for go1.11
+* Add go1.10.5, use it as the default for go1.10
+
+## v94 (2018-10-19)
+* Remove the need for Procfiles in simple situations for go modules
+* Add go1.11.1, use it as the default for go1.11
+* Promote go1.11.1 as the default install
+* Deprecate go1.9.X
+
+## v93 (2018-08-30)
+* Be clearer about what version of go is chosen if none is specified. Addresses #266.
+* Handle version stuff in the right place for go modules.
+
 ## v92 (2018-08-27)
 * Add go1.11 and mark it as supported
 * Add go1.10.4 and make it the default, supported version

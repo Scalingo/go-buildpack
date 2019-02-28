@@ -23,8 +23,8 @@ $ git push scalingo master
 
 ```
 -----> Go app detected
------> Installing go1.8... done
------> Running: go install -tags paas ./...
+-----> Installing go1.11... done
+-----> Running: go install -tags paas .
 -----> Discovering process types
        Procfile declares types -> web
         Build complete, shipping your container...
@@ -52,13 +52,10 @@ constraint](https://golang.org/pkg/go/build/#hdr-Build_Constraints) style
 comments to track Scalingo build specific configuration which is encoded in the
 following way:
 
-- `// +scalingo goVersion <version>`: the major version of go you would like Scalingo
-  to use when compiling your code. If not specified defaults to the most recent
-  supported version of Go. Exact versions (ex `go1.9.4`) can also be specified
-  if needed, but is not generally recommended. Since Go doesn't release `.0`
-  versions, specifying a `.0` version will pin your code to the initial release
-  of the given major version (ex `go1.10.0` == `go1.10` w/o auto updating to
-  `go1.10.1` when it becomes available).
+- `// +scalingo goVersion <version>`: the major version of go you would like
+  Scalingo to use when compiling your code. If not specified this defaults to the
+  buildpack's [DefaultVersion]. Specifying a version < go1.11 will cause a build
+  error because modules are not supported by older versions of go.
 
   Example: `// +scalingo goVersion go1.11`
 
@@ -75,6 +72,25 @@ greater than zero, `go install` is invoked with `-mod=vendor`, causing the build
 to skip downloading and checking of dependencies. This results in only the
 dependencies from the top level `vendor` directory being used.
 
+### Pre/Post Compile Hooks
+
+If the file `bin/go-pre-compile` or `bin/go-post-compile` exists and is
+executable then it will be executed either before compilation (go-pre-compile)
+of the repo, or after compilation (go-post-compile).
+
+Because the buildpack installs compiled executables to `bin`, the
+`go-post-compile` hook can be written in go if it's installed by the specified
+`<packagespec>` (see above).
+
+Example:
+
+```console
+$ cat go.mod
+// +scalingo install ./cmd/...
+$ ls -F cmd
+client/ go-post-compile/ server/
+```
+
 ## dep specifics
 
 The `Gopkg.toml` file allows for arbitrary, tool specific fields. This buildpack
@@ -86,8 +102,12 @@ the following way:
   .`. There is no default for this and it must be specified.
 
 - `metadata.scalingo['go-version']` (String): the major version of go you would
-  like Scalingo to use when compiling your code: if not specified defaults to the
-  most recent supported version of Go.
+  like Scalingo to use when compiling your code. If not specified this defaults to
+  the buildpack's [DefaultVersion]. Exact versions (ex `go1.9.4`) can also be
+  specified if needed, but is not generally recommended. Since Go doesn't
+  release `.0` versions, specifying a `.0` version will pin your code to the
+  initial release of the given major version (ex `go1.10.0` == `go1.10` w/o auto
+  updating to `go1.10.1` when it becomes available).
 
 - `metadata.scalingo['install']` (Array of Strings): a list of the packages you
   want to install. If not specified, this defaults to `["."]`. Other common
@@ -131,9 +151,13 @@ top level json keys:
   this field filled in automatically, or it will be filled the next time you use
    govendor to modify a dependency.
 
-* `scalingo.goVersion` (String): the major version of go you would like Scalingo to
-  use when compiling your code: if not specified defaults to the most recent
-  supported version of Go.
+- `scalingo.goVersion` (String): the major version of go you would like Scalingo to
+  use when compiling your code. If not specified this defaults to the
+  buildpack's [DefaultVersion]. Exact versions (ex `go1.9.4`) can also be
+  specified if needed, but is not generally recommended. Since Go doesn't
+  release `.0` versions, specifying a `.0` version will pin your code to the
+  initial release of the given major version (ex `go1.10.0` == `go1.10` w/o auto
+  updating to `go1.10.1` when it becomes available).
 
 * `scalingo.install` (Array of Strings): a list of the packages you want to install.
   If not specified, this defaults to `["."]`. Other common choices are:
@@ -176,11 +200,16 @@ control the build process.
 
 The base package name is determined by running `glide name`.
 
-The Go version used to compile code defaults to the latest released version of Go.
-This can be overridden by the `$GOVERSION` environment variable. Setting
-`$GOVERSION` to a major version will result in the buildpack using the
-latest released minor version in that series. Setting `$GOVERSION` to a specific
-minor Go version will pin Go to that version. Examples:
+The Go version used to compile code defaults to the buildpack's
+[DefaultVersion]. This can be overridden by the `$GOVERSION` environment
+variable. Setting `$GOVERSION` to a major version will result in the buildpack
+using the latest released minor version in that series. Setting `$GOVERSION` to
+a specific minor Go version will pin Go to that version. Since Go doesn't
+release `.0` versions, specifying a `.0` version will pin your code to the
+initial release of the given major version (ex `go1.10.0` == `go1.10` w/o auto
+updating to `go1.10.1` when it becomes available).
+
+Examples:
 
 ```console
 $ scalingo env-set GOVERSION=go1.9   # Will use go1.9.X, Where X is that latest minor release in the 1.9 series
@@ -333,3 +362,4 @@ make publish # && follow the prompts
 [gopgsqldriver]: https://github.com/jbarham/gopgsqldriver
 [glide]: https://github.com/Masterminds/glide
 [gomodules]: https://github.com/golang/go/wiki/Modules
+[DefaultVersion]: https://github.com/Scalingo/go-buildpack/blob/master/data.json#L4

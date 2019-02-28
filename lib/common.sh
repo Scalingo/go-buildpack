@@ -32,7 +32,6 @@ TOOL=""
 # Default to $SOURCE_VERSION environment variable: http://doc.scalingo.com/app/build-environment
 GO_LINKER_VALUE=${SOURCE_VERSION}
 
-
 warn() {
     echo -e "${YELLOW} !!    $@${NC}"
 }
@@ -235,7 +234,7 @@ setGitCredHelper() {
             if [ -f "${f}" ]; then
                 echo "Using credentials from GO_GIT_CRED__${protocol}__${host}" >&2
                 t=$(cat ${f})
-                if [ "${t}" =~ ":" ]; then
+                if [[ "${t}" =~ ":" ]]; then
                     username="$(echo $t | cut -d : -f 1)"
                     password="$(echo $t | cut -d : -f 2)"
                 else
@@ -267,8 +266,37 @@ setGoVersionFromEnvironment() {
 determineTool() {
     if [ -f "${goMOD}" ]; then
         TOOL="gomodules"
+        warn ""
+        warn "Go modules are an experimental feature of go1.11+"
+        warn "Any issues building code that uses Go modules should be"
+        warn "reported via: https://github.com/Scalingo/go-buildpack/issues"
+        warn ""
+        warn "Additional documentation for using Go modules with this buildpack"
+        warn "can be found here: https://github.com/Scalingo/go-buildpack#go-module-specifics"
+        warn ""
         ver=${GOVERSION:-$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' ${goMOD})}
+        name=$(awk '{ if ($1 == "module" ) { print $2; exit } }' ${goMOD} | cut -d/ -f3)
         warnGoVersionOverride
+        if [ -z "${ver}" ]; then
+            ver=${DefaultGoVersion}
+            warn "The go.mod file for this project does not specify a Go version"
+            warn ""
+            warn "Defaulting to ${ver}"
+            warn ""
+            warn "For more details see: https://doc.scalingo.com/languages/go/gomod#configuration"
+            warn ""
+        fi
+        if ! <"${DataJSON}" jq  -e '.Go.SupportsModuleExperiment | any(. == "'${ver}'")' &> /dev/null; then
+            err "You are using ${ver}, which does not support the Go modules experiment"
+            err ""
+            err "These go versions support Go modules: $(<${DataJSON} jq -c -r -M '.Go.SupportsModuleExperiment | sort | join(", ")')"
+            err ""
+            err "Please add a comment in your go.mod file, or update an existing one, to specify a Go version that does like so:"
+            err "// +scalingo goVersion go1.11.5"
+            err ""
+            err "Then commit and push again."
+           exit 1
+        fi
     elif [ -f "${depTOML}" ]; then
         TOOL="dep"
         ensureInPath "tq-${TQVersion}-linux-amd64" "${cache}/.tq/bin"
