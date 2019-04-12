@@ -1,21 +1,82 @@
 #!/usr/bin/env bash
 # See README.md for info on running these tests.
 
+testModWithQuotesModule() {
+  fixture "mod-with-quoted-module"
+
+  assertDetected
+
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+  assertFile "web: fixture" "Procfile"
+}
+
+testModWithNonFilesInBin() {
+  fixture "mod-with-non-files-in-bin"
+
+  assertDetected
+
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  assertNotCaptured "go: finding github.com/gorilla/mux v1.6.2"
+  assertNotCaptured "go: finding github.com/gorilla/context v1.1.1"
+  assertNotCaptured "go: downloading github.com/gorilla/mux v1.6.2"
+  assertNotCaptured "go: extracting github.com/gorilla/mux v1.6.2"
+
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+}
+
+testModcmdDetection() {
+  fixture "mod-cmd"
+
+  assertDetected
+
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertCaptured "Detected the following main packages to install:
+github.com/heroku/fixture/cmd/fixture
+github.com/heroku/fixture/cmd/other"
+  assertCaptured "Running: go install -v -tags heroku github.com/heroku/fixture/cmd/fixture github.com/heroku/fixture/cmd/other
+github.com/heroku/fixture/cmd/fixture
+github.com/heroku/fixture/cmd/other"
+
+  assertCaptured "Installed the following binaries:
+./bin/fixture
+./bin/other"
+  
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+  assertCompiledBinaryExists other
+}
+
 testModWithHooks() {
   fixture "mod-basic-with-hooks"
 
   assertDetected
 
   compile
-  assertCaptured "Installing go"
-  assertCaptured "-----> Running bin/go-pre-compile hook"
-  assertCaptured "PRE COMPILE"
-  assertCaptured "Running: go install -v -tags heroku ."
-  assertCaptured "github.com/heroku/fixture"
-  assertCaptured "-----> Running bin/go-post-compile hook"
-  assertCaptured "POST COMPILE"
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+
+  assertCaptured "Running bin/go-pre-compile hook
+PRE COMPILE"
+
+  assertGoInstallOnlyFixturePackageCaptured
+  assertCaptured "Running bin/go-post-compile hook
+POST COMPILE"
+
   assertCapturedSuccess
-  assertCompiledBinaryExists
+  assertInstalledFixtureBinary
 }
 
 testModNoVersion() {
@@ -24,17 +85,12 @@ testModNoVersion() {
   assertDetected
 
   compile
-  assertCaptured "Go modules are an experimental feature of go1.11"
-  assertCaptured "Any issues building code that uses Go modules should be"
-  assertCaptured "reported via: https://github.com/heroku/heroku-buildpack-go/issues"
-  assertCaptured "Additional documentation for using Go modules with this buildpack"
-  assertCaptured "can be found here: https://github.com/heroku/heroku-buildpack-go#go-module-specifics"
-  assertCaptured "The go.mod file for this project does not specify a Go version"
-  assertCaptured "Defaulting to go1.11"
-  assertCaptured "For more details see: https://devcenter.heroku.com/articles/go-apps-with-modules#build-configuration"
-
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+ 
   assertCapturedSuccess
-  assertCompiledBinaryExists
+  assertInstalledFixtureBinary
 }
 
 testModOldVersion() {
@@ -43,7 +99,9 @@ testModOldVersion() {
   assertDetected
 
   compile
-  assertCapturedError 1 "Please add a comment in your go.mod file, or update an existing one, to specify a Go version that does like so"
+  assertCaptured "Detected go modules via go.mod"
+  assertCaptured "Detected Module Name: github.com/heroku/fixture"
+  assertCapturedError 1 "Please add/update the comment in your go.mod file to specify a Go version >= go1.11 like so:"
 }
 
 testDepWithGolangMigrate() {
@@ -70,11 +128,19 @@ testModInstall() {
   assertDetected
 
   compile
-  assertCaptured "Installing go"
-  assertCaptured "Running: go install -v -tags heroku ."
-  assertCaptured "github.com/heroku/fixture/cmd/fixture1"
-  assertCaptured "github.com/heroku/fixture/cmd/fixture2"
-  assertCaptured "github.com/heroku/fixture/other"
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+
+  assertCaptured "Running: go install -v -tags heroku ./cmd/... ./other
+github.com/heroku/fixture/cmd/fixture1
+github.com/heroku/fixture/cmd/fixture2
+github.com/heroku/fixture/other"
+
+  assertCaptured "Installed the following binaries:
+./bin/fixture1
+./bin/fixture2
+./bin/other"
+
   assertCapturedSuccess
   assertCompiledBinaryExists "fixture1"
   assertCompiledBinaryExists "fixture2"
@@ -87,12 +153,12 @@ testModBasic() {
   assertDetected
 
   compile
-  assertCaptured "Installing go"
-  assertCaptured "Running: go install -v -tags heroku ."
-  # This appears to be missing in this case.
-  #assertCaptured "github.com/heroku/fixture"
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
   assertCapturedSuccess
-  assertCompiledBinaryExists
+  assertInstalledFixtureBinary
 }
 
 testModBasicWithoutProcfile() {
@@ -101,7 +167,12 @@ testModBasicWithoutProcfile() {
   assertDetected
 
   compile
-  assertCompiledBinaryExists
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
   assertFile "web: fixture" "Procfile"
 }
 
@@ -111,14 +182,20 @@ testModDeps() {
   assertDetected
 
   compile
-  assertCaptured "Installing go"
-  assertCaptured "Running: go install -v -tags heroku ."
-  assertCaptured "finding github.com/gorilla/context v1.1.1"
-  assertCaptured "finding github.com/gorilla/mux v1.6.2"
-  assertCaptured "downloading github.com/gorilla/mux v1.6.2"
-  assertCaptured "github.com/heroku/fixture"
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  # The other deps are downloaded/installed
+  assertCaptured "
+go: finding github.com/gorilla/mux v1.6.2
+go: finding github.com/gorilla/context v1.1.1
+go: downloading github.com/gorilla/mux v1.6.2
+go: extracting github.com/gorilla/mux v1.6.2
+github.com/gorilla/mux
+"
   assertCapturedSuccess
-  assertCompiledBinaryExists
+  assertInstalledFixtureBinary
 }
 
 testModDepsVendored() {
@@ -127,14 +204,17 @@ testModDepsVendored() {
   assertDetected
 
   compile
-  assertCaptured "Installing go"
-  assertCaptured "Running: go install -v -tags heroku -mod=vendor ."
-  assertNotCaptured "finding github.com/gorilla/context v1.1.1"
-  assertNotCaptured "finding github.com/gorilla/mux v1.6.2"
-  assertNotCaptured "downloading github.com/gorilla/mux v1.6.2"
-  assertCaptured "github.com/heroku/fixture"
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  assertNotCaptured "go: finding github.com/gorilla/mux v1.6.2"
+  assertNotCaptured "go: finding github.com/gorilla/context v1.1.1"
+  assertNotCaptured "go: downloading github.com/gorilla/mux v1.6.2"
+  assertNotCaptured "go: extracting github.com/gorilla/mux v1.6.2"
+
   assertCapturedSuccess
-  assertCompiledBinaryExists
+  assertInstalledFixtureBinary
 }
 
 testGovendorWithPrivateDepsGithub() {
@@ -548,6 +628,14 @@ testGovendorGo14WithGOVERSIONOverride() {
 }
 
 testGlideMassageVendor() {
+  if [ "${IMAGE}" = "heroku/cedar:14" ]; then
+    echo "!!!"
+    echo "!!! Skipping this test on heroku/cedar:14"
+    echo "!!! It fails with gcc errors when compiling mattes/migrate"
+    echo "!!!"
+    return 0
+  fi
+
   fixture "glide-massage-vendor"
 
   env "GO_INSTALL_PACKAGE_SPEC" ". github.com/mattes/migrate"
@@ -951,7 +1039,6 @@ testGodepLDSymbolGo14Value() {
 
   compile
   assertCaptured "Running: go install -v -tags heroku -ldflags -X main.fixture fixture ." #Nothing vendored
-  assertCaptured "Deprecated or unsupported version of go"
   assertCapturedSuccess
   assertCompiledBinaryExists
   assertCompiledBinaryOutputs "fixture" "fixture"
@@ -1180,5 +1267,5 @@ testGoCacheGoVersionLessThan110() {
 pushd $(dirname 0) >/dev/null
 popd >/dev/null
 
-source $(pwd)/test/utils
-source $(pwd)/test/shunit2
+source $(pwd)/test/utils.sh
+source $(pwd)/test/shunit2.sh

@@ -140,6 +140,18 @@
     "SHA": "ff54aafedff961eb94792487e827515da683d61a5f9482f668008832631e5d25",
     "URL": "https://storage.googleapis.com/golang/go1.11.5.linux-amd64.tar.gz"
   },
+  "go1.11.6.linux-amd64.tar.gz": {
+    "SHA": "4e1864282d8d20010d6385a12a1e35641783a380a7c57907bfb46a5499c5eb49",
+    "URL": "https://storage.googleapis.com/golang/go1.11.6.linux-amd64.tar.gz"
+  },
+  "go1.11.7.linux-amd64.tar.gz": {
+    "SHA": "db687814288b3b541c1754dfd4ecc2b8fd0d5e7995624945e3054a350ca573d8",
+    "URL": "https://storage.googleapis.com/golang/go1.11.7.linux-amd64.tar.gz"
+  },
+  "go1.11.8.linux-amd64.tar.gz": {
+    "SHA": "e32ab1c934b747999d04e8a550b97f4647f8b1b43e152de5650d4476bfd1d2e1",
+    "URL": "https://storage.googleapis.com/golang/go1.11.8.linux-amd64.tar.gz"
+  },
   "go1.11.linux-amd64.tar.gz": {
     "SHA": "b3fcf280ff86558e0559e185b601c9eade0fd24c900b4c63cd14d1d38613e499",
     "URL": "https://storage.googleapis.com/golang/go1.11.linux-amd64.tar.gz"
@@ -159,6 +171,18 @@
   "go1.11rc2.linux-amd64.tar.gz": {
     "SHA": "7d3fc1dec64b056cbd22ffd80bb9733725c1296aabfd58cc92bab8a5c6560e03",
     "URL": "https://storage.googleapis.com/golang/go1.11rc2.linux-amd64.tar.gz"
+  },
+  "go1.12.1.linux-amd64.tar.gz": {
+    "SHA": "2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec",
+    "URL": "https://storage.googleapis.com/golang/go1.12.1.linux-amd64.tar.gz"
+  },
+  "go1.12.2.linux-amd64.tar.gz": {
+    "SHA": "f28c1fde8f293cc5c83ae8de76373cf76ae9306909564f54e0edcf140ce8fe3f",
+    "URL": "https://storage.googleapis.com/golang/go1.12.2.linux-amd64.tar.gz"
+  },
+  "go1.12.3.linux-amd64.tar.gz": {
+    "SHA": "3924819eed16e55114f02d25d03e77c916ec40b7fd15c8acb5838b63135b03df",
+    "URL": "https://storage.googleapis.com/golang/go1.12.3.linux-amd64.tar.gz"
   },
   "go1.12.linux-amd64.tar.gz": {
     "SHA": "750a07fef8579ae4839458701f4df690e0b20b8bcce33b437e4df89c451b6f13",
@@ -406,6 +430,10 @@
   "migrate-v3.4.0-linux-amd64.tar.gz": {
     "SHA": "cc4b544f982fb3cf0ac84fe9c78f3fc37513f31daba90f247e9d477f5daf2396",
     "URL": "https://github.com/golang-migrate/migrate/releases/download/v3.4.0/migrate.linux-amd64.tar.gz"
+  },
+  "stdlib.sh.v8": {
+    "SHA": "48b1c663ceda9e93a42fa2ed610fbdd12f9801abd55c317990b30ec75dc3d715",
+    "URL": "https://lang-common.s3.amazonaws.com/buildpack-stdlib/v8/stdlib.sh"
   },
   "tq-v0.4-linux-amd64": {
     "LocalName": "tq",

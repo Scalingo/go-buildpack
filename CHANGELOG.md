@@ -1,6 +1,41 @@
 # Go Buildpack Changelog
 
 ## Unreleased
+* Add go1.12.3, expand go1.12 to go1.12.3, and default to go1.12.3
+* Add go1.11.8 and expand go1.11 to go.11.8.
+
+## v108 (2019-04-08)
+* Handle quoted module names in go.mod
+* Add go1.12.2, expand go1.12 to go1.12.2, and default to go1.12.2
+* Add go1.11.7 and expand go1.11 to go.11.7.
+* Drop 'Go.SupportsModuleExperiment' from data.json, instead error for go versions < go1.11 when using modules.
+* Drop 'Go.Supported' from data.json since the buildpack is no longer using it for anything.
+* Skip vendored mattes migrate compile on cedar:14 due to gcc error.
+
+## v107 (2019-04-02)
+* Handle non files in bin/ (symlinks, directories, etc) when diffing to determine contents of bin/
+
+## v106 (2019-04-01)
+* Fixed flag handling, which has been broken since -mod=vendor was added (at least)
+* For Go modules, detect main packages in the repo and install them when there isn't a specified package spec.
+* Only list the contents of bin/ that were installed/modified by the buildpack, instead of everything in bin/
+* Small updates to the readme
+
+## v105 (2019-03-18)
+* Add go1.12.1 & go1.11.6
+* Default to go1.12.1
+* If ./cmd exists and no package spec is set, then set package spec to ./cmd/...
+
+## v104 (2019-03-11)
+* Fix up Go modules testing to include mod=vendor or mod=readonly and set GOPATH to a temporary directory so downloaded deps' tests aren't executed.
+* Move publish script to /sbin/publish / don't push to master since it's disabled.
+* Add Codeowners to automate PR reviews.
+
+## v103 (2019-03-07)
+* Removed warnings on command line
+* Added info about compiled binaries
+
+## v102 (2019-03-01)
 * Add go1.12 and default to it when go1.12 is specified.
 * Add go1.12 to the list of supported versions.
 * Deprecate go1.10*

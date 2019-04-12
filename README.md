@@ -47,6 +47,11 @@ article](https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath) for m
 
 ## Go Module Specifics
 
+When using go modules, this buildpack will search the code base for `main`
+packages, ignoring any in `vendor/`, and will automatically compile those
+packages. If this isn't what you want you can specify specific package spec(s)
+via the `go.mod` file's `// +heroku install` directive (see below).
+
 The `go.mod` file allows for arbitrary comments. This buildpack utilizes [build
 constraint](https://golang.org/pkg/go/build/#hdr-Build_Constraints) style
 comments to track Scalingo build specific configuration which is encoded in the
@@ -60,10 +65,13 @@ following way:
   Example: `// +scalingo goVersion go1.11`
 
 - `// +scalingo install <packagespec>[, <packagespec>]`: a space separated list of
-  the packages you want to install. If not specified, this defaults to `.`.
-  Other common choices are: `./cmd/...` (all packages and sub packages in the
-  `cmd` directory) and `./...` (all packages and sub packages of the current
-  directory). The exact choice depends on the layout of your repository though.
+  the packages you want to install. If not specified, the buildpack defaults to
+  detecting the `main` packages in the code base. Generally speaking this should
+  be sufficient for most users. If this isn't what you want you can instruct the
+  buildpack to only build certain packages via this option. Other common choices
+  are: `./cmd/...` (all packages and sub packages in the `cmd` directory) and
+  `./...` (all packages and sub packages of the current directory). The exact
+  choice depends on the layout of your repository though.
 
   Example: `// +scalingo install ./cmd/... ./special`
 
@@ -250,6 +258,29 @@ following contents, adjusted as needed for your project's root path.
 }
 ```
 
+## Default Procfile
+
+If there is no Procfile in the base directory of the code being built and the
+buildpack can figure out the name of the base package (also known as the
+module), then a default Procfile is created that includes a `web` process type
+that runs the resulting executable from compiling the base package.
+
+For example, if the package name was `github.com/Scalingo/example`, this buildpack
+would create a Procfile that looks like this:
+
+```sh
+$ cat Procfile
+web: example
+```
+
+This is useful when the base package is also the only main package to build.
+
+If you have adopted the `cmd/<executable name>` structure this won't work and
+you will need to create a [Procfile].
+
+Note: This buildpack should be able to figure out the name of the base package
+in all cases, except when gb is being used.
+
 ## Private Git Repos
 
 The buildpack installs a custom git credential handler. Any tool that shells out to git (most do) should be able to transparently use this feature. Note: It has only been tested with Github repos over https using personal access tokens.
@@ -272,21 +303,22 @@ that tests have been added to the `test/run` script and any corresponding fixtur
 
 ### Tests
 
-Requires docker.
+[Make] & [docker] are required to run tests.
 
 ```console
 make test
 ```
 
-### Compiling a fixture
+### Compiling a fixture locally
 
-Requires docker.
+[Make] & [docker] are required to compile a fixture.
 
 ```console
 make FIXTURE=<fixture name> compile
 ```
 
-You will then be dropped into a bash prompt in the container in which the fixture was compiled in.
+You will then be dropped into a bash prompt in the container that the fixture
+was compiled in.
 
 ## Using with cgo
 
@@ -327,13 +359,7 @@ into the compiled executable.
 
 ## Testpack
 
-This buildpack also supports the testpack API.
-
-## Deploying
-
-```console
-make publish # && follow the prompts
-```
+This buildpack supports the testpack API.
 
 ### New Go version
 
@@ -363,3 +389,6 @@ make publish # && follow the prompts
 [glide]: https://github.com/Masterminds/glide
 [gomodules]: https://github.com/golang/go/wiki/Modules
 [DefaultVersion]: https://github.com/Scalingo/go-buildpack/blob/master/data.json#L4
+[Procfile]: https://devcenter.heroku.com/articles/procfile
+[make]: https://www.gnu.org/software/make/
+[docker]: https://www.docker.com/

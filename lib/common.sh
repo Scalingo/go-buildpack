@@ -17,6 +17,7 @@ glideYAML="${build}/glide.yaml"
 goMOD="${build}/go.mod"
 
 steptxt="----->"
+GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 RED='\033[1;31m'
 NC='\033[0m' # No Color
@@ -31,6 +32,53 @@ fi
 TOOL=""
 # Default to $SOURCE_VERSION environment variable: http://doc.scalingo.com/app/build-environment
 GO_LINKER_VALUE=${SOURCE_VERSION}
+
+snapshotBinBefore() {
+  if [ ! -d "${build}/bin" ]; then
+    return 0
+  fi
+  _oifs=$IFS
+  IFS=$'\n'
+  _binBefore=()
+  for f in ${build}/bin/*; do
+    if [ -f $f ]; then
+      _binBefore+=($(shasum $f))
+    fi
+  done
+  IFS=$_oifs
+}
+
+binDiff() {
+  _oifs=$IFS
+  IFS=$'\n'
+  local binAfter=()
+  for f in ${build}/bin/*; do
+    if [ -f $f ]; then
+      binAfter+=($(shasum $f))
+    fi
+  done
+
+  local new=()
+  for a in "${binAfter[@]}"; do
+    local let found=0
+
+    for b in "${_binBefore[@]}"; do
+        if [ "${a}" == "${b}" ]; then
+        let found+=1
+        fi
+    done
+
+    if [ $found -eq 0 ]; then
+        new+=( "./bin/$(basename $(echo $a | awk '{print $2}' ) )" )
+    fi
+  done
+  IFS=$_oifs
+  echo ${new[@]}
+}
+
+info() {
+    echo -e "${GREEN}       $@${NC}"
+}
 
 warn() {
     echo -e "${YELLOW} !!    $@${NC}"
@@ -267,19 +315,22 @@ setGoVersionFromEnvironment() {
     ver=${GOVERSION:-$DefaultGoVersion}
 }
 
+supportsGoModules() {
+    local version="${1}"
+    # Ex:      "go1.10.4" | ["go1","10", "4"] | ["1","10","4"]     | [1,10,4]      |  [1]           [10]      == exit 1 (fail)
+    echo "\"${version}\"" | jq -e 'split(".") | map(gsub("go";"")) | map(tonumber) | .[0] >= 1 and .[1] < 11' &> /dev/null
+}
+
 determineTool() {
     if [ -f "${goMOD}" ]; then
         TOOL="gomodules"
-        warn ""
-        warn "Go modules are an experimental feature of go1.11+"
-        warn "Any issues building code that uses Go modules should be"
-        warn "reported via: https://github.com/Scalingo/go-buildpack/issues"
-        warn ""
-        warn "Additional documentation for using Go modules with this buildpack"
-        warn "can be found here: https://github.com/Scalingo/go-buildpack#go-module-specifics"
-        warn ""
+        step ""
+        info "Detected go modules via go.mod"
+        step ""
         ver=${GOVERSION:-$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' ${goMOD})}
-        name=$(awk '{ if ($1 == "module" ) { print $2; exit } }' ${goMOD} | cut -d/ -f3)
+        name=$(awk '{ if ($1 == "module" ) { gsub(/"/, "", $2); print $2; exit } }' < ${goMOD})
+        info "Detected Module Name: ${name}"
+        step ""
         warnGoVersionOverride
         if [ -z "${ver}" ]; then
             ver=${DefaultGoVersion}
@@ -290,16 +341,17 @@ determineTool() {
             warn "For more details see: https://doc.scalingo.com/languages/go/gomod#configuration"
             warn ""
         fi
-        if ! <"${DataJSON}" jq  -e '.Go.SupportsModuleExperiment | any(. == "'${ver}'")' &> /dev/null; then
-            err "You are using ${ver}, which does not support the Go modules experiment"
+
+        if supportsGoModules "${ver}"; then
+            err "You are using ${ver}, which does not support Go modules"
             err ""
-            err "These go versions support Go modules: $(<${DataJSON} jq -c -r -M '.Go.SupportsModuleExperiment | sort | join(", ")')"
+            err "Go modules are supported by go1.11 and above."
             err ""
-            err "Please add a comment in your go.mod file, or update an existing one, to specify a Go version that does like so:"
-            err "// +scalingo goVersion go1.11.5"
+            err "Please add/update the comment in your go.mod file to specify a Go version >= go1.11 like so:"
+            err "// +scalingo goVersion ${DefaultGoVersion}"
             err ""
             err "Then commit and push again."
-           exit 1
+            exit 1
         fi
     elif [ -f "${depTOML}" ]; then
         TOOL="dep"
