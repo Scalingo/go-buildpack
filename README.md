@@ -50,7 +50,7 @@ article](https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath) for m
 When using go modules, this buildpack will search the code base for `main`
 packages, ignoring any in `vendor/`, and will automatically compile those
 packages. If this isn't what you want you can specify specific package spec(s)
-via the `go.mod` file's `// +heroku install` directive (see below).
+via the `go.mod` file's `// +scalingo install` directive (see below).
 
 The `go.mod` file allows for arbitrary comments. This buildpack utilizes [build
 constraint](https://golang.org/pkg/go/build/#hdr-Build_Constraints) style
