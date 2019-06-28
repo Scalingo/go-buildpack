@@ -20,6 +20,21 @@
     "SHA": "31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315",
     "URL": "https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64"
   },
+  "dep-v0.5.0-linux-amd64": {
+    "LocalName": "dep",
+    "SHA": "287b08291e14f1fae8ba44374b26a2b12eb941af3497ed0ca649253e21ba2f83",
+    "URL": "https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64"
+  },
+  "dep-v0.5.1-linux-amd64": {
+    "LocalName": "dep",
+    "SHA": "7479cca72da0596bb3c23094d363ea32b7336daa5473fa785a2099be28ecd0e3",
+    "URL": "https://github.com/golang/dep/releases/download/v0.5.1/dep-linux-amd64"
+  },
+  "dep-v0.5.2-linux-amd64": {
+    "LocalName": "dep",
+    "SHA": "d2d7e7a620b7cca79a7d6884813acea4e848ffe01b4a1d59ddf135fe0eb17f1b",
+    "URL": "https://github.com/golang/dep/releases/download/0.5.2/dep-linux-amd64"
+  },
   "errors-0.8.0.tar.gz": {
     "SHA": "bacf6c58e490911398cee61742ddc6a90c560733e4c9dcb3d867b17a894c9dd5",
     "URL": "https://github.com/pkg/errors/archive/v0.8.0.tar.gz"
@@ -152,6 +167,18 @@
     "SHA": "e32ab1c934b747999d04e8a550b97f4647f8b1b43e152de5650d4476bfd1d2e1",
     "URL": "https://storage.googleapis.com/golang/go1.11.8.linux-amd64.tar.gz"
   },
+  "go1.11.9.linux-amd64.tar.gz": {
+    "SHA": "e88aa3e39104e3ba6a95a4e05629348b4a1ec82791fb3c941a493ca349730608",
+    "URL": "https://storage.googleapis.com/golang/go1.11.9.linux-amd64.tar.gz"
+  },
+  "go1.11.10.linux-amd64.tar.gz": {
+    "SHA": "aefaa228b68641e266d1f23f1d95dba33f17552ba132878b65bb798ffa37e6d0",
+    "URL": "https://storage.googleapis.com/golang/go1.11.10.linux-amd64.tar.gz"
+  },
+  "go1.11.11.linux-amd64.tar.gz": {
+    "SHA": "2fd47b824d6e32154b0f6c8742d066d816667715763e06cebb710304b195c775",
+    "URL": "https://storage.googleapis.com/golang/go1.11.11.linux-amd64.tar.gz"
+  },
   "go1.11.linux-amd64.tar.gz": {
     "SHA": "b3fcf280ff86558e0559e185b601c9eade0fd24c900b4c63cd14d1d38613e499",
     "URL": "https://storage.googleapis.com/golang/go1.11.linux-amd64.tar.gz"
@@ -184,6 +211,18 @@
     "SHA": "3924819eed16e55114f02d25d03e77c916ec40b7fd15c8acb5838b63135b03df",
     "URL": "https://storage.googleapis.com/golang/go1.12.3.linux-amd64.tar.gz"
   },
+  "go1.12.4.linux-amd64.tar.gz": {
+    "SHA": "d7d1f1f88ddfe55840712dc1747f37a790cbcaa448f6c9cf51bbe10aa65442f5",
+    "URL": "https://storage.googleapis.com/golang/go1.12.4.linux-amd64.tar.gz"
+  },
+  "go1.12.5.linux-amd64.tar.gz": {
+    "SHA": "aea86e3c73495f205929cfebba0d63f1382c8ac59be081b6351681415f4063cf",
+    "URL": "https://storage.googleapis.com/golang/go1.12.5.linux-amd64.tar.gz"
+  },
+  "go1.12.6.linux-amd64.tar.gz": {
+    "SHA": "dbcf71a3c1ea53b8d54ef1b48c85a39a6c9a935d01fc8291ff2b92028e59913c",
+    "URL": "https://storage.googleapis.com/golang/go1.12.6.linux-amd64.tar.gz"
+  },
   "go1.12.linux-amd64.tar.gz": {
     "SHA": "750a07fef8579ae4839458701f4df690e0b20b8bcce33b437e4df89c451b6f13",
     "URL": "https://storage.googleapis.com/golang/go1.12.linux-amd64.tar.gz"
@@ -199,6 +238,10 @@
   "go1.12rc1.linux-amd64.tar.gz": {
     "SHA": "e5a03e1f2e065b17b2fbbd3429f18a6f51fe2848e0120586652b9f14ada72c9a",
     "URL": "https://storage.googleapis.com/golang/go1.12rc1.linux-amd64.tar.gz"
+  },
+  "go1.13beta1.linux-amd64.tar.gz": {
+    "SHA": "dbd131c92f381a5bc5ca1f0cfd942cb8be7d537007b6f412b5be41ff38a7d0d9",
+    "URL": "https://storage.googleapis.com/golang/go1.13beta1.linux-amd64.tar.gz"
   },
   "go1.2.1.linux-amd64.tar.gz": {
     "SHA": "d6e9623b8cf566599003dac6c402d03a62f48d98158bfcfc3b0c743b51ad4be6",
@@ -408,6 +451,10 @@
     "LocalName": "godep",
     "SHA": "4f0b1a01461f2a1892c8065989b8561a88a1c1f09e2a36f01042cd759ea1858c",
     "URL": "https://github.com/tools/godep/releases/download/v75/godep_linux_amd64"
+  },
+  "golangci-lint-1.16.0-linux-amd64.tar.gz": {
+    "SHA": "5343fc3ffcbb9910925f4047ec3c9f2e9623dd56a72a17ac76fb2886abc0976b",
+    "URL": "https://github.com/golangci/golangci-lint/releases/download/v1.16.0/golangci-lint-1.16.0-linux-amd64.tar.gz"
   },
   "govendor_linux_amd64": {
     "LocalName": "govendor",

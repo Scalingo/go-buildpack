@@ -357,38 +357,52 @@ pushing code. If `GO_LINKER_SYMBOL` is set, but `GO_LINKER_VALUE` isn't set then
 This can be used to embed the commit sha, or other build specific data directly
 into the compiled executable.
 
-## Testpack
+### Golanglint-ci
 
-This buildpack supports the testpack API.
+If the source code contains a golanglint-ci configuration file in the root of
+the source code (one of `/.golangci.yml`, `/.golangci.toml`, or
+`/.golangci.json`) then golanci-lint is run at the start of the test phase.
+
+Use one of those configuration files to configure the golanglint-ci run.
 
 ### New Go version
 
-1. Run `bin/add-version <version>`, eg `bin/add-version go1.11` to update `files.json`.
-1. Update `data.json`, to update the `VersionExpansion` object.
-1. run `make ACCESS_KEY='THE KEY' SECRET_KEY='THE SECRET KEY' sync`.
-   This will download everything from the bucket, plus any missing files from
-   their source locations, and verify their SHAS, then upload anything missing
-   from the bucket back to the s3 bucket. If a file doesn't verify this will
-   error and it needs to be corrected.
+[Make], [jq], [curl], [shasum], [s3cmd], & [LastPassCLI] are required to do this.
+
+1. Run `sbin/add-version <version>`, eg `sbin/add-version go1.11` to update
+   `files.json`.
+1. Update `data.json`, to update the `VersionExpansion` and, if bumping the
+   default version, `DefaultVersion` objects.
+1. run `make sync`.
+   This will prompt you for your lastpass credentials, which are used to pull
+   AWS S3 credentials from a lastpass note. These credentials are then used to
+   download everything from the s3 bucket, plus any missing files from their
+   source locations, verify their SHAS, and upload anything missing from the
+   bucket back to the s3 bucket. If a file doesn't verify this will error and it
+   needs to be corrected.
 1. Commit and push.
 
-[go]: http://golang.org/
-[buildpack]: http://doc.scalingo.com/buildpacks/
-[go-linker]: https://golang.org/cmd/ld/
-[dep]: https://github.com/golang/dep
-[godep]: https://github.com/tools/godep
-[govendor]: https://github.com/kardianos/govendor
-[gb]: https://getgb.io/
-[quickstart]: http://doc.scalingo.com/languages/go/
-[build-constraint]: http://golang.org/pkg/go/build/
 [app-engine-build-constraints]: http://blog.golang.org/2013/01/the-app-engine-sdk-and-workspaces-gopath.html
-[source-version]: http://doc.scalingo.com/app/build-environment
+[build-constraint]: http://golang.org/pkg/go/build/
+[buildpack]: http://doc.scalingo.com/buildpacks/
 [cgo]: http://golang.org/cmd/cgo/
-[vendor.json]: https://github.com/kardianos/vendor-spec
-[gopgsqldriver]: https://github.com/jbarham/gopgsqldriver
-[glide]: https://github.com/Masterminds/glide
-[gomodules]: https://github.com/golang/go/wiki/Modules
+[curl]: https://curl.haxx.se/
 [DefaultVersion]: https://github.com/Scalingo/go-buildpack/blob/master/data.json#L4
-[Procfile]: https://devcenter.heroku.com/articles/procfile
-[make]: https://www.gnu.org/software/make/
+[dep]: https://github.com/golang/dep
 [docker]: https://www.docker.com/
+[gb]: https://getgb.io/
+[glide]: https://github.com/Masterminds/glide
+[go-linker]: https://golang.org/cmd/ld/
+[go]: http://golang.org/
+[godep]: https://github.com/tools/godep
+[gomodules]: https://github.com/golang/go/wiki/Modules
+[gopgsqldriver]: https://github.com/jbarham/gopgsqldriver
+[govendor]: https://github.com/kardianos/govendor
+[LastPassCLI]: https://github.com/lastpass/lastpass-cli
+[make]: https://www.gnu.org/software/make/
+[Procfile]: https://doc.scalingo.com/platform/app/procfile
+[quickstart]: http://doc.scalingo.com/languages/go/
+[s3cmd]: https://s3tools.org/s3cmd
+[shasum]: https://ss64.com/osx/shasum.html
+[source-version]: http://doc.scalingo.com/app/build-environment
+[vendor.json]: https://github.com/kardianos/vendor-spec

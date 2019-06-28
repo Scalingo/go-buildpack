@@ -1,6 +1,90 @@
 #!/usr/bin/env bash
 # See README.md for info on running these tests.
 
+testTestPackModulesVendoredGolangLintCI() {
+  fixture "mod-deps-vendored-with-tests"
+
+  dotest
+  assertCapturedSuccess
+  assertCaptured "RUN   Test_BasicTest"
+  assertCaptured "PASS: Test_BasicTest"
+  assertCaptured "/.golangci.{yml,toml,json} detected"
+  assertCaptured "Running: golangci-lint -v --build-tags heroku run"
+}
+
+testTestPackModulesGolangLintCI() {
+  fixture "mod-deps-with-tests"
+
+  dotest
+  assertCapturedSuccess
+
+  # The other deps are downloaded/installed
+  assertCaptured "
+go: finding github.com/gorilla/mux v1.6.2
+go: finding github.com/gorilla/context v1.1.1
+go: downloading github.com/gorilla/mux v1.6.2
+go: extracting github.com/gorilla/mux v1.6.2
+github.com/gorilla/mux
+"
+  assertCaptured "RUN   Test_BasicTest"
+  assertCaptured "PASS: Test_BasicTest"
+  assertCaptured "/.golangci.{yml,toml,json} detected"
+  assertCaptured "Running: golangci-lint -v --build-tags heroku run"
+}
+
+testModProcfileCreation() {
+  fixture "mod-cmd-web"
+
+  assertDetected
+  
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertCaptured "Running: go install -v -tags heroku github.com/heroku/fixture/cmd/web
+github.com/heroku/fixture/cmd/other"
+
+  assertCapturedSuccess
+  assertFile "other: bin/other
+web: bin/web" "Procfile"
+}
+testModDepsRecompile() {
+  fixture "mod-deps"
+
+  assertDetected
+
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  # The other deps are downloaded/installed
+  assertCaptured "
+go: finding github.com/gorilla/mux v1.6.2
+go: finding github.com/gorilla/context v1.1.1
+go: downloading github.com/gorilla/mux v1.6.2
+go: extracting github.com/gorilla/mux v1.6.2
+github.com/gorilla/mux
+"
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+
+  # Second compile
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  # On the second compile go should already be fetched and installed & the packages should be downloaded already.
+  assertNotCaptured "Fetching ${DEFAULT_GO_VERSION}.linux-amd64.tar.gz... done"
+  assertNotCaptured "Installing ${DEFAULT_GO_VERSION}"
+  assertNotCaptured "go: finding github.com/gorilla/mux v1.6.2"
+  assertNotCaptured "go: finding github.com/gorilla/context v1.1.1"
+  assertNotCaptured "go: downloading github.com/gorilla/mux v1.6.2"
+  assertNotCaptured "go: extracting github.com/gorilla/mux v1.6.2"
+
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+}
+
 testModWithQuotesModule() {
   fixture "mod-with-quoted-module"
 
@@ -13,7 +97,7 @@ testModWithQuotesModule() {
 
   assertCapturedSuccess
   assertInstalledFixtureBinary
-  assertFile "web: fixture" "Procfile"
+  assertFile "web: bin/fixture" "Procfile"
 }
 
 testModWithNonFilesInBin() {
@@ -53,6 +137,9 @@ github.com/heroku/fixture/cmd/other"
   assertCaptured "Installed the following binaries:
 ./bin/fixture
 ./bin/other"
+
+  assertFile "fixture: bin/fixture
+other: bin/other" "Procfile"
   
   assertCapturedSuccess
   assertInstalledFixtureBinary
@@ -173,7 +260,7 @@ testModBasicWithoutProcfile() {
 
   assertCapturedSuccess
   assertInstalledFixtureBinary
-  assertFile "web: fixture" "Procfile"
+  assertFile "web: bin/fixture" "Procfile"
 }
 
 testModDeps() {
@@ -529,6 +616,14 @@ testGlideWithHgDep() {
     echo "!!!"
     return 0
   fi
+
+  echo "!!!"
+  echo "!!! Skipping this test as Glide uses bitbucket v1.0 API, which is no longer supported"
+  echo "!!! https://developer.atlassian.com/cloud/bitbucket/deprecation-notice-v1-apis/"
+  echo "!!! TODO: move test to go modules"
+  echo "!!!"
+  return 0
+
   fixture "glide-with-hg-dep"
 
   assertDetected
@@ -628,14 +723,6 @@ testGovendorGo14WithGOVERSIONOverride() {
 }
 
 testGlideMassageVendor() {
-  if [ "${IMAGE}" = "heroku/cedar:14" ]; then
-    echo "!!!"
-    echo "!!! Skipping this test on heroku/cedar:14"
-    echo "!!! It fails with gcc errors when compiling mattes/migrate"
-    echo "!!!"
-    return 0
-  fi
-
   fixture "glide-massage-vendor"
 
   env "GO_INSTALL_PACKAGE_SPEC" ". github.com/mattes/migrate"
@@ -923,7 +1010,7 @@ testGodepDevelGo() {
   assertCapturedSuccess
   assertCompiledBinaryExists
   assertCompiledBinaryOutputs "fixture" "devel +15fa66"
-  #assertTrue "Binary has the right value" '[[ "$(${BUILD_DIR}/bin/fixture)" == *"devel +15f7a66"* ]]'
+  #assertTrue "Binary has the right value" '[[ "$(${BUILD_DIR}/bin/fixture)" = *"devel +15f7a66"* ]]'
 }
 
 testGodepBinFile() {

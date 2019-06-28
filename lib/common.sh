@@ -3,11 +3,6 @@
 # -----------------------------------------
 # load environment variables
 # allow apps to specify cgo flags. The literal text '${build_dir}' is substituted for the build directory
-
-if [ -z "${buildpack}" ]; then
-    buildpack=$(cd "$(dirname $0)/.." && pwd)
-fi
-
 DataJSON="${buildpack}/data.json"
 FilesJSON="${buildpack}/files.json"
 depTOML="${build}/Gopkg.toml"
@@ -63,7 +58,7 @@ binDiff() {
     local let found=0
 
     for b in "${_binBefore[@]}"; do
-        if [ "${a}" == "${b}" ]; then
+        if [ "${a}" = "${b}" ]; then
         let found+=1
         fi
     done
@@ -111,7 +106,7 @@ determinLocalFileName() {
 
 knownFile() {
     local fileName="${1}"
-    if [ "${fileName}" == "jq-linux64" ]; then #jq is special cased here because we can't jq until we have jq
+    if [ "${fileName}" = "jq-linux64" ]; then #jq is special cased here because we can't jq until we have jq
         true
     else
         <${FilesJSON} jq -e 'to_entries | map(select(.key == "'${fileName}'")) | any' &> /dev/null
@@ -218,6 +213,7 @@ loadEnvDir() {
     envFlags+=("GO_INSTALL_PACKAGE_SPEC")
     envFlags+=("GO_INSTALL_TOOLS_IN_IMAGE")
     envFlags+=("GO_SETUP_GOPATH_IN_IMAGE")
+    envFlags+=("GO_SETUP_GOPATH_FOR_MODULE_CACHE")
     envFlags+=("GO_TEST_SKIP_BENCHMARK")
     envFlags+=("GLIDE_SKIP_INSTALL")
     local env_dir="${1}"
@@ -290,7 +286,7 @@ setGitCredHelper() {
                   ;;
                   *)
                     username="${t}"
-                    password="x-oauth-basic"
+                    password="${t}"
                   ;;
                 esac
                 echo username=${username}

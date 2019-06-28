@@ -1,14 +1,51 @@
 # Go Buildpack Changelog
 
 ## Unreleased
+* Add go1.13beta1 and make it the default when go1.13 is specifiedq
+
+## v118 (2019-06-21)
+* Add -r to xargs so that xargs doesn't run commands when there is no input.
+
+## v117 (2019-06-17)
+* Add go1.12.6, expand go1.12 to go1.12.6, and default to go1.12.6
+* Add go1.11.11 and expand go1.11 to go1.11.11
+
+## v116 (2019-05-14)
+* *Dep* Dep bumped to v0.5.2. Dep v0.5.1 & v0.5.0 also made available.
+
+## v115 (2019-05-09)
+* Cleanup how the stdlib is sourced.
+
+## v114 (2019-05-07)
+* *GoModules* Make read-only module files writable so they can be deleted during cache cleaning on Go version upgrade.
+
+## v113 (2019-05-07)
+* *GoModules* *TestPack* When .golangci.{yml,toml,json} exist run `golangci-lint -v --build-tags heroku run` during test. Use your .golangci.{yml,toml,json} to configure golangci-lint.
+* Add go1.12.5, expand go1.12 to go1.12.5, and default to go1.12.5
+* Add go1.11.10 and expand go1.11 to go1.11.10
+
+## v112 (2019-04-30)
+* *GoModules* When no Procfile exists and only a single main package exists, setup the resulting executable as the web process type.
+* *GoModules* When no Procfile exists and multiple main packages exist, setup the resulting executables as process types of the same name.
+* *GoModules* This means that a main package in a `web` directory will be setup as the web process type, a package in a `worker` directory will be setup as the worker process type, etc.
+
+## v111 (2019-04-18)
+* *GoModules* Set GOPATH to capture downloaded dependencies.
+
+## v110 (2019-04-15)
+* Add go1.12.4, expand go1.12 to go1.12.4, and default to go1.12.4
+* Add go1.11.9 and expand go1.11 to go1.11.9
+* Restore vendored mattes migrate teset on cedar:14 (finally fixed in ^)
+
+## v109 (2019-04-09)
 * Add go1.12.3, expand go1.12 to go1.12.3, and default to go1.12.3
-* Add go1.11.8 and expand go1.11 to go.11.8.
+* Add go1.11.8 and expand go1.11 to go1.11.8
 
 ## v108 (2019-04-08)
-* Handle quoted module names in go.mod
+* *GoModules* Handle quoted module names in go.mod
 * Add go1.12.2, expand go1.12 to go1.12.2, and default to go1.12.2
-* Add go1.11.7 and expand go1.11 to go.11.7.
-* Drop 'Go.SupportsModuleExperiment' from data.json, instead error for go versions < go1.11 when using modules.
+* Add go1.11.7 and expand go1.11 to go1.11.7
+* *GoModules* Drop 'Go.SupportsModuleExperiment' from data.json, instead error for go versions < go1.11 when using modules.
 * Drop 'Go.Supported' from data.json since the buildpack is no longer using it for anything.
 * Skip vendored mattes migrate compile on cedar:14 due to gcc error.
 
@@ -16,8 +53,8 @@
 * Handle non files in bin/ (symlinks, directories, etc) when diffing to determine contents of bin/
 
 ## v106 (2019-04-01)
-* Fixed flag handling, which has been broken since -mod=vendor was added (at least)
-* For Go modules, detect main packages in the repo and install them when there isn't a specified package spec.
+* *GoModules* Fixed flag handling, which has been broken since -mod=vendor was added (at least)
+* *GoModules* Detect main packages in the repo and install them when there isn't a specified package spec.
 * Only list the contents of bin/ that were installed/modified by the buildpack, instead of everything in bin/
 * Small updates to the readme
 
@@ -27,7 +64,7 @@
 * If ./cmd exists and no package spec is set, then set package spec to ./cmd/...
 
 ## v104 (2019-03-11)
-* Fix up Go modules testing to include mod=vendor or mod=readonly and set GOPATH to a temporary directory so downloaded deps' tests aren't executed.
+* *GoModules* Fix up Go modules testing to include mod=vendor or mod=readonly and set GOPATH to a temporary directory so downloaded deps' tests aren't executed.
 * Move publish script to /sbin/publish / don't push to master since it's disabled.
 * Add Codeowners to automate PR reviews.
 
@@ -46,7 +83,7 @@
 ## v100 (2019-02-12)
 * Add go1.10.8 and default to it when go1.10 is specified
 * Add go1.11.5 and default to it when go1.11 is specified or no version is specified.
-* Support go modules on Heroku CI (bin/test-compile & bin/test).
+* *GoModules* Support go modules on Heroku CI (bin/test-compile & bin/test).
 * Add pre/post compile run hooks: /bin/go-pre-compile & /bin/go-post-compile
 * Add go1.12rc1 and default to it when go1.12 is specified.
 
