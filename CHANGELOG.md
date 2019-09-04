@@ -1,7 +1,38 @@
 # Go Buildpack Changelog
 
 ## Unreleased
-* Add go1.13beta1 and make it the default when go1.13 is specifiedq
+* Download and install bzr when modules are in use.
+* Add go1.12.9, expand go1.12 to go1.12.9, and default to go1.12.9
+* Add go1.11.13, expand go1.11 to go1.11.13
+* Add go1.13rc1, expand go1.13 to go1.13rc1
+
+## v127 (2019-08-15)
+* Add go1.12.8, expand go1.12 to go1.12.8, and default to go1.12.8
+
+## v126 (2019-07-10)
+* Set the public bit on files uploaded by ./sbin/sync-files.sh so that the files are publicly available.
+
+## v125 (2019-07-10)
+* Rollback to v119
+
+## v124 (2019-07-10)
+* Rollback attempt
+
+## v123 (2019-07-10)
+* Rollback attempt
+
+## v122 (2019-07-09)
+* Add go1.12.7, expand go1.12 to go1.12.7, and default to go1.12.7
+* Add go1.11.12 and expand go1.11 to go 1.11.12
+
+## v121 (2019-07-09)
+* Botched release
+
+## v120 (2019-07-09)
+* Botched release
+
+## v119 (2019-06-27)
+* Add go1.13beta1 and make it the default when go1.13 is specified
 
 ## v118 (2019-06-21)
 * Add -r to xargs so that xargs doesn't run commands when there is no input.
