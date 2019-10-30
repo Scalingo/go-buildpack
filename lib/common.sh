@@ -113,6 +113,15 @@ knownFile() {
     fi
 }
 
+getFileURL() {
+    local fileName="${1}"
+    if [ "${fileName}" = "jq-linux64" ] ; then
+      cat "${FilesJSON}" | grep https | grep "${fileName}" | cut -d '"' -f 4
+    else
+      <${FilesJSON} jq -r  '."'${fileName}'".URL'
+    fi
+}
+
 downloadFile() {
     local fileName="${1}"
 
@@ -131,11 +140,12 @@ downloadFile() {
     local xCmd="${3}"
     local localName="$(determinLocalFileName "${fileName}")"
     local targetFile="${targetDir}/${localName}"
+    local url="$(getFileURL "${fileName}")"
 
     mkdir -p "${targetDir}"
     pushd "${targetDir}" &> /dev/null
         start "Fetching ${localName}"
-            ${CURL} -O "${BucketURL}/${fileName}"
+            ${CURL} -o "${fileName}" "${url}"
             if [ "${fileName}" != "${localName}" ]; then
                 mv "${fileName}" "${localName}"
             fi
