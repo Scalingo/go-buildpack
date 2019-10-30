@@ -113,6 +113,8 @@ knownFile() {
     fi
 }
 
+# This method returns the URL to reach a file based on the files.json file.
+# Small exception with jq, where we're using simple shell tools to get the URL, others will be using jq
 getFileURL() {
     local fileName="${1}"
     if [ "${fileName}" = "jq-linux64" ] ; then
