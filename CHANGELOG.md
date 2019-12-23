@@ -1,8 +1,29 @@
 # Go Buildpack Changelog
 
 ## Unreleased
+* Add go1.12.13
+* Add go1.13.4
+* Add go1.13.5, use for go1.13
+* Add go1.12.14, expand go1.12 to go1.12.14, and default to go1.12.14
+
+## 134 (2019-10-22)
+* Add go1.13.3, use for go1.13
+* Add go1.12.12, expand go1.12 to go1.12.12, and default to go1.12.12
+* Add go1.13.2, use for go1.13
+* Add go1.12.11, expand go1.12 to go1.12.11, and default to go1.12.11
+* Remove hg and bzr installation as they are now part of the heroku-16 and heroku-18 build images.
+
+## v131 (2019-10-15) (and v132/v133)
+* Bump golangci-lint to v1.20.0
+
+## v130 (2019-09-26)
+* Add go1.13.1, use for go1.13
+* Add go1.12.10, expand go1.12 to go1.12.10, and default to go1.12.10
+
+## v129 (2019-09-05)
 * Add go1.13rc2, use for go1.13
 * Add go1.13, use for go1.13
+* Bump Glide to 0.13.3
 
 ## v128 (2019-08-27)
 * Download and install bzr when modules are in use.
