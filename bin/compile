@@ -22,6 +22,7 @@ GovendorVersion="$(<${DataJSON} jq -r '.Govendor.DefaultVersion')"
 GBVersion="$(<${DataJSON} jq -r '.GB.DefaultVersion')"
 PkgErrorsVersion="$(<${DataJSON} jq -r '.PkgErrors.DefaultVersion')"
 MercurialVersion="$(<${DataJSON} jq -r '.HG.DefaultVersion')"
+BazaarVersion="$(<${DataJSON} jq -r '.BZR.DefaultVersion')"
 MattesMigrateVersion="$(<${DataJSON} jq -r '.MattesMigrate.DefaultVersion')"
 GolangMigrateVersion="$(<${DataJSON} jq -r '.GolangMigrate.DefaultVersion')"
 TQVersion="$(<${DataJSON} jq -r '.tq.DefaultVersion')"
@@ -120,25 +121,6 @@ reportVer() {
             warn ""
         ;;
     esac
-}
-
-ensureHG() {
-    local hgVersion="${1}"
-    local tmp="$(mktemp -d)"
-    local hgPath="${cache}/hg/${hgVersion}"
-    if [ -x "${hgPath}/bin/hg" ]; then
-        step "Using hg v${hgVersion}"
-    else
-        rm -rf "${cache}/hg"
-        mkdir -p "${hgPath}"
-        step "Installing hg ${hgVersion}"
-        ensureFile "mercurial-${hgVersion}.tar.gz" "${tmp}" "tar -C ${tmp} --strip-components=1 -zxf"
-        pushd "${tmp}" &> /dev/null
-            python setup.py install --force --home="${hgPath}" &> /dev/null
-        popd &> /dev/null
-    fi
-
-    addToPATH "${hgPath}/bin"
 }
 
 ensureGlide() {
@@ -627,7 +609,6 @@ case "${TOOL}" in
     ;;
     glide)
         ensureGlide "${GlideVersion}"
-        ensureHG "${MercurialVersion}"
 
         # Do this before setupGOPATH as we need ${name} set first
         cd "${build}"

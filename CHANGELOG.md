@@ -1,7 +1,63 @@
 # Go Buildpack Changelog
 
 ## Unreleased
-* Add go1.13beta1 and make it the default when go1.13 is specifiedq
+* Add go1.12.13
+* Add go1.13.4
+* Add go1.13.5, use for go1.13
+* Add go1.12.14, expand go1.12 to go1.12.14, and default to go1.12.14
+
+## 134 (2019-10-22)
+* Add go1.13.3, use for go1.13
+* Add go1.12.12, expand go1.12 to go1.12.12, and default to go1.12.12
+* Add go1.13.2, use for go1.13
+* Add go1.12.11, expand go1.12 to go1.12.11, and default to go1.12.11
+* Remove hg and bzr installation as they are now part of the heroku-16 and heroku-18 build images.
+
+## v131 (2019-10-15) (and v132/v133)
+* Bump golangci-lint to v1.20.0
+
+## v130 (2019-09-26)
+* Add go1.13.1, use for go1.13
+* Add go1.12.10, expand go1.12 to go1.12.10, and default to go1.12.10
+
+## v129 (2019-09-05)
+* Add go1.13rc2, use for go1.13
+* Add go1.13, use for go1.13
+* Bump Glide to 0.13.3
+
+## v128 (2019-08-27)
+* Download and install bzr when modules are in use.
+* Add go1.12.9, expand go1.12 to go1.12.9, and default to go1.12.9
+* Add go1.11.13, expand go1.11 to go1.11.13
+* Add go1.13rc1, expand go1.13 to go1.13rc1
+
+## v127 (2019-08-15)
+* Add go1.12.8, expand go1.12 to go1.12.8, and default to go1.12.8
+
+## v126 (2019-07-10)
+* Set the public bit on files uploaded by ./sbin/sync-files.sh so that the files are publicly available.
+
+## v125 (2019-07-10)
+* Rollback to v119
+
+## v124 (2019-07-10)
+* Rollback attempt
+
+## v123 (2019-07-10)
+* Rollback attempt
+
+## v122 (2019-07-09)
+* Add go1.12.7, expand go1.12 to go1.12.7, and default to go1.12.7
+* Add go1.11.12 and expand go1.11 to go 1.11.12
+
+## v121 (2019-07-09)
+* Botched release
+
+## v120 (2019-07-09)
+* Botched release
+
+## v119 (2019-06-27)
+* Add go1.13beta1 and make it the default when go1.13 is specified
 
 ## v118 (2019-06-21)
 * Add -r to xargs so that xargs doesn't run commands when there is no input.
