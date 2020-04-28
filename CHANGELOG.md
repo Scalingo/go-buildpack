@@ -1,12 +1,51 @@
 # Go Buildpack Changelog
 
 ## Unreleased
+
+## v142 (2020-04-27)
+* Set GOPATH earlier when using modules, which fixes issues when using Heroku CI
+
+## v141 (2020-04-21)
+* Add Heroku-20 to the Travis test matrix
+* Add go1.13.10, use for go1.13
+* Add go1.14.2, use for go1.14
+
+## v140 (2020-04-16)
+* Only pass -mod=vendor to `go list` if a vendor directory is present (#394)
+
+## v139 (2020-03-23)
+* Update shunit2
+* sbin/sync-files.sh: verify checksums serially
+* Add go1.12.17, use for go1.12 and as the default
+* Add go1.13.9, use for go1.13
+* Add go1.14.1, use for go1.14
+
+## v138 (2020-03-13)
+* Add go1.13.8
+* Add go1.14
+* Expand go1.13 to go1.13.8
+* Expand go1.14 to go1.14
+
+## v137 (2020-02-19)
+* Add go1.12.15 and go1.12.16
+* Add go1.13.6 and go1.13.7
+* Add go1.14rc1
+* Default to go1.12.16
+* Expand go1.13 to go1.13.7
+* Expand go1.14 to go1.14rc1
+
+## v136 (2019-12-16)
 * Add go1.12.13
 * Add go1.13.4
 * Add go1.13.5, use for go1.13
 * Add go1.12.14, expand go1.12 to go1.12.14, and default to go1.12.14
+* Add go1.14beta1 expand go1.14 to go1.14beta1
+* Remove duplicate deploy docs.
 
-## 134 (2019-10-22)
+## v135 (2019-12-03)
+* Same as 134, which looks like a misfire.
+
+## v134 (2019-10-22)
 * Add go1.13.3, use for go1.13
 * Add go1.12.12, expand go1.12 to go1.12.12, and default to go1.12.12
 * Add go1.13.2, use for go1.13
