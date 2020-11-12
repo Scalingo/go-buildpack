@@ -19,9 +19,6 @@ web.go
 
 $ scalingo create my-go-app
 $ git push scalingo master
-```
-
-```
 -----> Go app detected
 -----> Installing go1.11... done
 -----> Running: go install -tags paas .
@@ -29,7 +26,7 @@ $ git push scalingo master
        Procfile declares types -> web
         Build complete, shipping your container...
          Waiting for your application to boot...
-          <-- https://my-go-app.scalingo.io -->
+          <-- https://my-go-app.osc-fr1.scalingo.io -->
 ```
 
 This buildpack will detect your repository as Go if you are using either:
