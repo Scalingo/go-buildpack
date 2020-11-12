@@ -286,6 +286,25 @@ testModBasicWithoutProcfile() {
   assertFile "web: bin/fixture" "Procfile"
 }
 
+testModPrivateProxy() {
+  local repo="${BUILDPACK_HOME}/test/fixtures/mod-private-proxy/repo"
+  fixture "mod-private-proxy/app"
+
+  env "GOPROXY" "file://$repo"
+  env "GOPRIVATE" "git.fury.io/*"
+  env "GONOPROXY" "none"
+
+  assertDetected
+
+  compile
+  assertModulesBoilerplateCaptured
+  assertGoInstallCaptured
+  assertGoInstallOnlyFixturePackageCaptured
+
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+}
+
 testModDeps() {
   fixture "mod-deps"
 
@@ -679,7 +698,7 @@ testGlideWithHgDep() {
   assertCaptured "Installing go"
   assertCaptured "Installing glide"
   assertCaptured "Fetching any unsaved dependencies (glide install)"
-  assertCaptured "github.com/heroku/fixture/vendor/bitbucket.org/pkg/inflect"
+  assertCaptured "github.com/heroku/fixture/vendor/bitbucket.org/pkg/urlenc"
   assertCaptured "Running: go install -v -tags heroku ."
   assertCaptured "github.com/heroku/fixture"
   assertCapturedSuccess
