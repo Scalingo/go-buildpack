@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## v153 (2021-03-11)
+* Add go1.16.1, use for go1.16
+* Add go1.15.9, use for go1.15
+
+## v152 (2021-02-17)
+* Drop cedar-14 from test matrix
+* Remove skipping of tests on cedar-14
+* Update Makefile's default IMAGE to heroku/heroku:20-build
+* Install patter in a Go 1.16+ compatible way
+* Add go1.16, use for go1.16 and go1.16.0
+* Add go1.14.15, use for go1.14
+* Add go1.15.8, use for go1.15
+
+## v151 (2021-02-01)
+* Add go1.16rc1, use for go1.16
+
+## v150 (2021-01-21)
+* Add go1.14.14, use for go1.14
+* Add go1.15.7, use for go1.15
+
+## v149 (2020-12-07)
+* Add go1.14.11
+* Add go1.15.4
+* Add go1.14.12
+* Add go1.15.5
+* Add go1.14.13, use for go1.14
+* Add go1.15.6, use for go1.15
+
 ## v148 (2020-10-19)
 * Add go1.14.10, use for go1.14
 * Add go1.15.3, use for go1.15
