@@ -360,7 +360,6 @@ pushing code. If `GO_LINKER_SYMBOL` is set, but `GO_LINKER_VALUE` isn't set then
 This can be used to embed the commit sha, or other build specific data directly
 into the compiled executable.
 
-### Golanglint-ci
 
 If the source code contains a golanglint-ci configuration file in the root of
 the source code (one of `/.golangci.yml`, `/.golangci.toml`, or
