@@ -83,6 +83,15 @@ If the file `bin/go-pre-compile` or `bin/go-post-compile` exists and is
 executable then it will be executed either before compilation (go-pre-compile)
 of the repo, or after compilation (go-post-compile).
 
+These hooks can be used to install additional tools, such as `github.com/golang-migrate/migrate`:
+
+```bash
+#!/bin/bash
+set -e
+
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.1
+```
+
 Because the buildpack installs compiled executables to `bin`, the
 `go-post-compile` hook can be written in go if it's installed by the specified
 `<packagespec>` (see above).
@@ -194,7 +203,7 @@ spec of `./...` to install.
 }
 ```
 
-A tool like jq or a text editor can be used to inject these variables into
+A tool like [jq] or a text editor can be used to inject these variables into
 `vendor/vendor.json`.
 
 ## glide specifics
@@ -300,7 +309,7 @@ that tests have been added to `test/run.sh` and any corresponding fixtures to
 
 ### Tests
 
-[Make] & [docker] are required to run tests.
+[Make], [jq] & [docker] are required to run tests.
 
 ```console
 make test
@@ -383,6 +392,8 @@ Use one of those configuration files to configure the golanglint-ci run.
 [gomodules]: https://github.com/golang/go/wiki/Modules
 [gopgsqldriver]: https://github.com/jbarham/gopgsqldriver
 [govendor]: https://github.com/kardianos/govendor
+[herokuci]: https://devcenter.heroku.com/articles/heroku-ci
+[jq]: https://github.com/stedolan/jq
 [LastPassCLI]: https://github.com/lastpass/lastpass-cli
 [make]: https://www.gnu.org/software/make/
 [Procfile]: https://doc.scalingo.com/platform/app/procfile

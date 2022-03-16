@@ -11,7 +11,7 @@ testModWithBZRDep() {
   assertGoInstallCaptured
   assertGoInstallOnlyFixturePackageCaptured
 
-  assertCapturedSuccess
+  assertCapturedExitSuccess
   assertInstalledFixtureBinary
   assertFile "web: bin/fixture" "Procfile"
 }
@@ -31,7 +31,7 @@ testTestPackModulesGolangLintCI() {
   fixture "mod-deps-with-tests"
 
   dotest
-  assertCapturedSuccess
+  assertCapturedExitSuccess
 
   # The other deps are downloaded/installed
   assertCaptured "
@@ -51,7 +51,7 @@ testTestPackModulesGolangLintCI116() {
   fixture "mod-deps-with-tests-116"
 
   dotest
-  assertCapturedSuccess
+  assertCapturedExitSuccess
 
   # The other deps are downloaded/installed
   assertCaptured "
@@ -101,7 +101,7 @@ go: downloading github.com/gorilla/mux v1.6.2
 go: extracting github.com/gorilla/mux v1.6.2
 github.com/gorilla/mux
 "
-  assertCapturedSuccess
+  assertCapturedExitSuccess
   assertInstalledFixtureBinary
 
   # Second compile
@@ -326,6 +326,20 @@ testModBasicGo117() {
   assertInstalledFixtureBinary
 }
 
+testModBasicGo118() {
+  fixture "mod-basic-go118"
+
+  assertDetected
+
+  compile
+  assertModulesBoilerplateCaptured
+  assertCaptured "Installing go1.18"
+  assertGoInstallOnlyFixturePackageCaptured
+
+  assertCapturedSuccess
+  assertInstalledFixtureBinary
+}
+
 testModBasicWithoutProcfile() {
   fixture "mod-basic-wo-procfile"
 
@@ -356,7 +370,7 @@ testModPrivateProxy() {
   assertGoInstallCaptured
   assertGoInstallOnlyFixturePackageCaptured
 
-  assertCapturedSuccess
+  assertCapturedExitSuccess
   assertInstalledFixtureBinary
 }
 
@@ -378,7 +392,7 @@ go: downloading github.com/gorilla/mux v1.6.2
 go: extracting github.com/gorilla/mux v1.6.2
 github.com/gorilla/mux
 "
-  assertCapturedSuccess
+  assertCapturedExitSuccess
   assertInstalledFixtureBinary
 }
 
@@ -409,7 +423,7 @@ go: downloading github.com/gorilla/mux v1.6.2
 go: extracting github.com/gorilla/mux v1.6.2
 github.com/gorilla/mux
 "
-  assertCapturedSuccess
+  assertCapturedExitSuccess
   assertInstalledFixtureBinary
 }
 
