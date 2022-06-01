@@ -6,6 +6,7 @@ set -eo pipefail
 if [ -n "$BUILDPACK_DEBUG" ]; then
     set -x
 fi
+[ "$BUILDPACK_XTRACE" ] && set -o xtrace
 
 mkdir -p "$1" "$2"
 build=$(cd "$1/" && pwd)

@@ -1,8 +1,13 @@
 # Go Buildpack Changelog
 
 ## Unreleased
-* Stop suppressing error output from `go list`
-* Document how to install additional tools with go modules
+* Add go1.17.9
+* Add go1.17.10
+* Add go1.18.1
+* Add go1.18.2
+* go1.17 defaults to 1.17.10
+* go1.18 defaults to 1.18.2
+* Add Heroku-22 to the Circle CI test matrix.
 
 ## v161 (2022-03-15)
 * Add go1.15.11
@@ -25,6 +30,10 @@
 * go1.17 defaults to 1.17.8
 * go1.16 defaults to 1.16.15
 * go1.15 defaults to 1.15.15
+
+## v160 (2021-11-30)
+* Stop suppressing error output from `go list`
+* Document how to install additional tools with go modules
 
 ## v159 (2021-11-30)
 * Republish v157 (with missing binaries)
