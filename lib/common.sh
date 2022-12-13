@@ -16,10 +16,10 @@ GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 RED='\033[1;31m'
 NC='\033[0m' # No Color
-CURL="curl -s -L --retry 15 --retry-delay 2" # retry for up to 30 seconds
+CURL="curl -s -L --fail --retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5" # retry for up to 30 seconds
 
 if [ -z "${GO_BUCKET_URL}" ]; then
-    BucketURL="https://heroku-golang-prod.s3.amazonaws.com"
+    BucketURL="https://heroku-golang-prod.s3.us-east-1.amazonaws.com"
 else
     BucketURL="${GO_BUCKET_URL}"
 fi
