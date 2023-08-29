@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+## v178 (2023-08-14)
+* Add go1.21.0
+* Use go1.21.0 for go1.21
+
+## v177 (2023-08-07)
+* Add go1.20.7
+* Add go1.19.12
+* go1.20 defaults to go1.20.7
+* go1.19 defaults to go1.19.12
+
+## v176 (2023-08-01)
+* Add go1.20.6
+* Add go1.19.11
+* go1.20 defaults to go1.20.6
+* go1.19 defaults to go1.19.11
+
+## v175 (2023-06-26)
+* Add go1.20.5
+* Add go1.19.10
+* go1.20 defaults to go1.20.5
+* go1.19 defaults to go1.19.10
+* Drop support for the heroku-18 stack
+
+## v174 (2023-05-09)
+* Add go1.20.4
+* Add go1.19.9
+* go1.20 defaults to go1.20.4
+* go1.19 defaults to go1.19.9
+
+### v173 (2023-04-11)
+* Add go1.20.3
+* Add go1.19.8
+* go1.20 defaults to go1.20.3
+* go1.19 defaults to go1.19.8
+
+### v172 (2023-03-23)
+* Add go1.20.1 and go1.20.2
+* Add go1.19.6 and go1.19.7
+* go1.20 defaults to 1.20.2
+* go1.19 defaults to 1.19.7
+
 ### v171 (2023-02-06)
 * Add go1.20, use for go1.20 and go1.20.0
 
