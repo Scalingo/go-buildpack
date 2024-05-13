@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+
+## [v191] - 2024-05-07
+
+* Add go1.22.3
+* Add go1.21.10
+* go1.22 defaults to go1.22.3
+* go1.21 defaults to go1.21.10
+* Add support for heroku-24
+* Drop support for installing bzr-hosted dependencies directly; bzr-hosted
+
 ## [v190] - 2024-04-05
 
 * Add go1.22.2
@@ -962,7 +972,9 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v189...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v191...main
+[v191]: https://github.com/heroku/heroku-buildpack-go/compare/v190...v191
+[v190]: https://github.com/heroku/heroku-buildpack-go/compare/v189...v190
 [v189]: https://github.com/heroku/heroku-buildpack-go/compare/v188...v189
 [v188]: https://github.com/heroku/heroku-buildpack-go/compare/v187...v188
 [v187]: https://github.com/heroku/heroku-buildpack-go/compare/v186...v187
