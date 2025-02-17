@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [v204] - 2025-02-12
+
+* Add go1.24.0
+* go1.24 defaults to 1.24.0
+
+## [v203] - 2025-02-06
+
+* Add go1.23.6
+* Add go1.22.12
+* go1.23 defaults to 1.23.6
+* go1.22 defaults to 1.22.12
+
+## [v202] - 2025-01-21
+
+* Add go1.23.5
+* Add go1.22.11
+* go1.23 defaults to 1.23.5
+* go1.22 defaults to 1.22.11
+
+## [v201] - 2024-12-06
+
+* Add go1.23.4
+* Add go1.22.10
+* go1.23 defaults to 1.23.4
+* go1.22 defaults to 1.22.10
 
 ## [v200] - 2024-11-12
 
@@ -238,7 +263,7 @@
 * Adjust curl retry and connection timeout handling
 * Switch to the recommended regional S3 domain instead of the global one
 
-## [v163] - 2022-06-09), v167 (published by mistake 2022-09-08
+## [v163] - 2022-06-09, [v167] (published by mistake 2022-09-08)
 
 * Use the go version in `go.mod` if no `+heroku` comment is found (#378/#411)
 * Add go1.18.3
@@ -1031,7 +1056,11 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v200...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v204...main
+[v204]: https://github.com/heroku/heroku-buildpack-go/compare/v203...v204
+[v203]: https://github.com/heroku/heroku-buildpack-go/compare/v202...v203
+[v202]: https://github.com/heroku/heroku-buildpack-go/compare/v201...v202
+[v201]: https://github.com/heroku/heroku-buildpack-go/compare/v200...v201
 [v200]: https://github.com/heroku/heroku-buildpack-go/compare/v199...v200
 [v199]: https://github.com/heroku/heroku-buildpack-go/compare/v198...v199
 [v198]: https://github.com/heroku/heroku-buildpack-go/compare/v197...v198
