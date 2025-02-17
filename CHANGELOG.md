@@ -28,6 +28,20 @@
 * go1.23 defaults to 1.23.4
 * go1.22 defaults to 1.22.10
 
+## [v202] - 2025-01-21
+
+* Add go1.23.5
+* Add go1.22.11
+* go1.23 defaults to 1.23.5
+* go1.22 defaults to 1.22.11
+
+## [v201] - 2024-12-06
+
+* Add go1.23.4
+* Add go1.22.10
+* go1.23 defaults to 1.23.4
+* go1.22 defaults to 1.22.10
+
 ## [v200] - 2024-11-12
 
 * go1.23 defaults to 1.23.3
