@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 
+## [v218] - 2026-01-16
+
+* Add go1.24.12
+* Add go1.25.6
+* go1.24 defaults to 1.24.12
+* go1.25 defaults to 1.25.6
+
 ## [v217] - 2025-12-04
 
 * Fix broken download URLs for old Go releases
@@ -1157,7 +1164,8 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v217...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v218...main
+[v218]: https://github.com/heroku/heroku-buildpack-go/compare/v217...v218
 [v217]: https://github.com/heroku/heroku-buildpack-go/compare/v216...v217
 [v216]: https://github.com/heroku/heroku-buildpack-go/compare/v215...v216
 [v215]: https://github.com/heroku/heroku-buildpack-go/compare/v214...v215
