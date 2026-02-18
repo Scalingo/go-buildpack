@@ -10,15 +10,51 @@ fi
 
 mkdir -p "$1" "$2"
 build=$(cd "$1/" && pwd)
-cache=$(cd "$2/" && pwd)
+cache_root=$(cd "$2/" && pwd)
+cache="${cache_root}/.scalingo/go"
+mkdir -p "${cache}"
 env_dir="${3}"
 buildpack=$(cd "$(dirname $0)/.." && pwd)
 
 source "${buildpack}/lib/common.sh"
-source "${buildpack}/lib/common_tools.sh"
-source_stdlib
+
+# Used by buildpack-stdlib
+BPLOG_PREFIX="buildpack.go"
+source "${buildpack}/vendor/buildpack-stdlib_v8.sh"
+
+# Set CACHE_DIR (used by build_data)
+CACHE_DIR="${cache_root}"
+source "${buildpack}/lib/build_data.sh"
+
+compile_start_time=$(build_data::current_unix_realtime)
+
+# Initialise the build data store used to track state across builds (for cache invalidation
+# and messaging when build configuration changes) and also so that `bin/report` can generate
+# a build report that will be consumed by the build system for observability.
+build_data::setup
 
 snapshotBinBefore
+
+# Clean up old cache files if migrating from old cache structure.
+# We detect this legacy structure by looking for 'go-path' in the root.
+if [ -d "${cache_root}/go-path" ] && [ ! -d "${cache}/go-path" ]; then
+    step "Clearing old build cache artifacts"
+
+    # Remove artifacts that were previously stored in the cache root
+    rm -rf "${cache_root}"/go[0-9]* \
+           "${cache_root}"/devel-* \
+           "${cache_root}/go-path" \
+           "${cache_root}/go-build-cache" \
+           "${cache_root}/glide" \
+           "${cache_root}/gb" \
+           "${cache_root}/dep" \
+           "${cache_root}/godep" \
+           "${cache_root}/govendor" \
+           "${cache_root}/.tq" \
+           "${cache_root}/.jq" \
+           "${cache_root}/github.com/golang-migrate" \
+           "${cache_root}/github.com/mattes" 2>/dev/null || true
+fi
 
 DefaultGoVersion="$(<${DataJSON} jq -r '.Go.DefaultVersion')"
 DepVersion="$(<${DataJSON} jq -r '.Dep.DefaultVersion')"
@@ -257,7 +293,7 @@ ensureGo() {
     if [ -d "${goPath}" ]; then
         step "Using ${goVersion}"
     else
-        #For a go version change, we delete everything
+        #For a go version change, we delete everything in our namespace
         step "New Go Version, clearing old cache"
         if [ -d "${cache}/go-path" ]; then
             find "${cache}/go-path" ! -perm -u=w -print0 | xargs -r -0 chmod u+w 2>&1
@@ -318,18 +354,6 @@ ensureGo() {
     fi
 }
 
-setGoVersionFromEnvironment() {
-    if [ -z "${GOVERSION}" ]; then
-        warn ""
-        warn "'GOVERSION' isn't set, defaulting to '${DefaultGoVersion}'"
-        warn ""
-        warn "Run 'scalingo env-set GOVERSION=goX.Y' to set the Go version to use"
-        warn "for future builds"
-        warn ""
-    fi
-    ver=${GOVERSION:-$DefaultGoVersion}
-}
-
 warnGoVersionOverride() {
     if [ ! -z "${GOVERSION}" ]; then
         warn "Using \$GOVERSION override."
@@ -355,8 +379,8 @@ warnPackageSpecOverride() {
 warnDeprecatedTool() {
     local tool=$1
     warn "This application is using ${tool}, but ${tool} is no longer maintained."
-    warn "${tool} support on Heroku is deprecated and will be removed on March 1, 2025."
-    warn "Please migrate to Go modules. Learn more about Go modules on Heroku here: https://devcenter.heroku.com/articles/go-modules."
+    warn "${tool} support on Scalingo is deprecated and has been removed on March 1, 2025."
+    warn "Please migrate to Go modules."
 }
 
 # Sets up GOPATH (and posibly other GO* env vars) and returns the location of
@@ -393,11 +417,23 @@ loadEnvDir "${env_dir}"
 setGitCredHelper "${env_dir}"
 trap clearGitCredHelper INT TERM EXIT
 
-FLAGS=(-tags heroku)
+FLAGS=(-tags scalingo)
 
 determineTool
 
+# Track the requested version before expansion (for pinned check)
+requested_go_version="${ver}"
+
+# Expand the version and track the resolved version
 ver=$(expandVer $ver)
+build_data::set_string "go_version" "${ver}"
+
+# Track whether the version was pinned (fully specified)
+if [ "${requested_go_version}" = "${ver}" ]; then
+    build_data::set_raw "go_version_pinned" "true"
+else
+    build_data::set_raw "go_version_pinned" "false"
+fi
 
 # If $GO_LINKER_SYMBOL and GO_LINKER_VALUE are set, tell the linker to DTRT
 if [ -n "${GO_LINKER_SYMBOL}" -a -n "${GO_LINKER_VALUE}" ]; then
@@ -421,7 +457,9 @@ fi
 
 reportVer "${ver}"
 
+go_install_start_time=$(build_data::current_unix_realtime)
 ensureGo "${ver}"
+build_data::set_duration "go_install_duration" "${go_install_start_time}"
 
 mkdir -p "${build}/bin"
 
@@ -468,6 +506,8 @@ setupProcfile() {
     info "See https://doc.scalingo.com/platform/app/procfile for more details about Procfiles"
     info ""
 }
+
+dependencies_install_start_time=$(build_data::current_unix_realtime)
 
 case "${TOOL}" in
     gomodules)
@@ -667,6 +707,8 @@ esac
 installGolangMigrateIfWanted
 installMattesMigrateIfWanted
 
+build_data::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
+
 _newOrUpdatedBinFiles=$(binDiff)
 info ""
 info "Installed the following binaries:"
@@ -731,3 +773,5 @@ echo "TOOL=${TOOL}" > "${t}"
 if [ "${TOOL}" != "gb" ]; then
     echo "NAME=${name}" >> "${t}"
 fi
+
+build_data::set_duration "total_duration" "${compile_start_time}"

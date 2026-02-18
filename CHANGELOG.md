@@ -3,6 +3,19 @@
 ## [Unreleased]
 
 
+## [v223] - 2026-02-18
+
+* Vendor buildpack-stdlib instead of fetching from S3
+* `jq` is no longer installed by the buildpack
+
+## [v222] - 2026-02-17
+
+* Implemented the `bin/report` build report API
+
+## [v221] - 2026-02-16
+
+* Fix bug where Go version changes deleted the shared buildpack build cache
+
 ## [v220] - 2026-02-10
 
 * Add go1.26.0
@@ -1177,7 +1190,10 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v220...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v223...main
+[v223]: https://github.com/heroku/heroku-buildpack-go/compare/v222...v223
+[v222]: https://github.com/heroku/heroku-buildpack-go/compare/v221...v222
+[v221]: https://github.com/heroku/heroku-buildpack-go/compare/v220...v221
 [v220]: https://github.com/heroku/heroku-buildpack-go/compare/v219...v220
 [v219]: https://github.com/heroku/heroku-buildpack-go/compare/v218...v219
 [v218]: https://github.com/heroku/heroku-buildpack-go/compare/v217...v218

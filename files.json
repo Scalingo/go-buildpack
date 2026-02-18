@@ -1278,7 +1278,6 @@
     "URL": "https://github.com/kardianos/govendor/releases/download/v1.0.8/govendor_linux_amd64"
   },
   "jq-linux64": {
-    "LocalName": "jq",
     "SHA": "c6b3a7d7d3e7b70c6f51b706a3b90bd01833846c54d32ca32f0027f00226ff6d",
     "URL": "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64"
   },
@@ -1296,7 +1295,7 @@
   },
   "stdlib.sh.v8": {
     "SHA": "48b1c663ceda9e93a42fa2ed610fbdd12f9801abd55c317990b30ec75dc3d715",
-    "URL": "https://lang-common.s3.us-east-1.amazonaws.com/buildpack-stdlib/v8/stdlib.sh"
+    "URL": "https://raw.githubusercontent.com/heroku/buildpack-stdlib/v8/stdlib.sh"
   },
   "tq-v0.4-linux-amd64": {
     "LocalName": "tq",
