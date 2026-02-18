@@ -97,20 +97,13 @@ finished() {
 
 determinLocalFileName() {
     local fileName="${1}"
-    local localName="jq"
-    if [ "${fileName}" != "jq-linux64" ]; then #jq is special cased here because we can't jq until we have jq
-        localName="$(<"${FilesJSON}" jq -r '."'${fileName}'".LocalName | if . == null then "'${fileName}'" else . end')"
-    fi
+    local localName="$(<"${FilesJSON}" jq -r '."'${fileName}'".LocalName | if . == null then "'${fileName}'" else . end')"
     echo "${localName}"
 }
 
 knownFile() {
     local fileName="${1}"
-    if [ "${fileName}" = "jq-linux64" ]; then #jq is special cased here because we can't jq until we have jq
-        true
-    else
-        <${FilesJSON} jq -e 'to_entries | map(select(.key == "'${fileName}'")) | any' &> /dev/null
-    fi
+    <${FilesJSON} jq -e 'to_entries | map(select(.key == "'${fileName}'")) | any' &> /dev/null
 }
 
 # This method returns the URL to reach a file based on the files.json file.
@@ -326,8 +319,14 @@ setGoVersionFromEnvironment() {
         warn "Run 'scalingo env-set GOVERSION=goX.Y' to set the Go version to use"
         warn "for future builds"
         warn ""
+        go_version_origin="default"
+    else
+        go_version_origin="GOVERSION"
     fi
     ver=${GOVERSION:-$DefaultGoVersion}
+
+    build_data::set_string "go_version_origin" "${go_version_origin}"
+    build_data::set_string "go_version_requested" "${ver}"
 }
 
 supportsGoModules() {
@@ -337,19 +336,46 @@ supportsGoModules() {
 }
 
 determineTool() {
+    # Check GOVERSION first - it overrides all tool-specific configurations
+    if [ -n "${GOVERSION}" ]; then
+        ver="${GOVERSION}"
+        go_version_origin="GOVERSION"
+        build_data::set_string "go_version_origin" "${go_version_origin}"
+        build_data::set_string "go_version_requested" "${ver}"
+    fi
+
     if [ -f "${goMOD}" ]; then
         TOOL="gomodules"
+        build_data::set_string "go_tool" "${TOOL}"
+
         step ""
         info "Detected go modules via go.mod"
         step ""
-        ver=${GOVERSION:-$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' ${goMOD})}
-        ver=${ver:-$(awk '{ if ($1 == "go" ) { print "go" $2; exit } }' ${goMOD})}
+
+        # Determine Go version from go.mod if not already set by GOVERSION
+        if [ -z "${ver}" ]; then
+            ver=$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' ${goMOD})
+            if [ -n "${ver}" ]; then
+                go_version_origin="go.mod (scalingo comment)"
+            else
+                ver=$(awk '{ if ($1 == "go" ) { print "go" $2; exit } }' ${goMOD})
+                if [ -n "${ver}" ]; then
+                    go_version_origin="go.mod"
+                else
+                    ver=${DefaultGoVersion}
+                    go_version_origin="default"
+                fi
+            fi
+            build_data::set_string "go_version_origin" "${go_version_origin}"
+            build_data::set_string "go_version_requested" "${ver}"
+        fi
+
         name=$(awk '{ if ($1 == "module" ) { gsub(/"/, "", $2); print $2; exit } }' < ${goMOD})
         info "Detected Module Name: ${name}"
         step ""
         warnGoVersionOverride
-        if [ -z "${ver}" ]; then
-            ver=${DefaultGoVersion}
+
+        if [ "${go_version_origin}" = "default" ]; then
             warn "The go.mod file for this project does not specify a Go version"
             warn ""
             warn "Defaulting to ${ver}"
@@ -371,6 +397,8 @@ determineTool() {
         fi
     elif [ -f "${depTOML}" ]; then
         TOOL="dep"
+        build_data::set_string "go_tool" "${TOOL}"
+
         ensureInPath "tq-${TQVersion}-linux-amd64" "${cache}/.tq/bin"
         name=$(<${depTOML} tq '$.metadata.scalingo["root-package"]')
         if [ -z "${name}" ]; then
@@ -380,10 +408,23 @@ determineTool() {
             err "For more details see: http://doc.scalingo.com/languages/go-dependencies-with-dep.html"
             exit 1
         fi
-        ver=${GOVERSION:-$(<${depTOML} tq '$.metadata.scalingo["go-version"]')}
-        warnGoVersionOverride
+
+        # Determine Go version from Gopkg.toml if not already set by GOVERSION
         if [ -z "${ver}" ]; then
-            ver=${DefaultGoVersion}
+            ver=$(<${depTOML} tq '$.metadata.scalingo["go-version"]')
+            if [ -n "${ver}" ]; then
+                go_version_origin="Gopkg.toml"
+            else
+                ver=${DefaultGoVersion}
+                go_version_origin="default"
+            fi
+            build_data::set_string "go_version_origin" "${go_version_origin}"
+            build_data::set_string "go_version_requested" "${ver}"
+        fi
+
+        warnGoVersionOverride
+
+        if [ "${go_version_origin}" = "default" ]; then
             warn "The 'metadata.scalingo[\"go-version\"]' field is not specified in 'Gopkg.toml'."
             warn ""
             warn "Defaulting to ${ver}"
@@ -393,16 +434,28 @@ determineTool() {
         fi
     elif [ -f "${godepsJSON}" ]; then
         TOOL="godep"
+        build_data::set_string "go_tool" "${TOOL}"
+
         step "Checking Godeps/Godeps.json file."
         if ! jq -r . < "${godepsJSON}" > /dev/null; then
             err "Bad Godeps/Godeps.json file"
         exit 1
         fi
         name=$(<${godepsJSON} jq -r .ImportPath)
-        ver=${GOVERSION:-$(<${godepsJSON} jq -r .GoVersion)}
+
+        # Determine Go version from Godeps/Godeps.json if not already set by GOVERSION
+        if [ -z "${ver}" ]; then
+            ver=$(<${godepsJSON} jq -r .GoVersion)
+            go_version_origin="Godeps/Godeps.json"
+            build_data::set_string "go_version_origin" "${go_version_origin}"
+            build_data::set_string "go_version_requested" "${ver}"
+        fi
+
         warnGoVersionOverride
     elif [ -f "${vendorJSON}" ]; then
         TOOL="govendor"
+        build_data::set_string "go_tool" "${TOOL}"
+
         step "Checking vendor/vendor.json file."
         if ! jq -r . < "${vendorJSON}" > /dev/null; then
             err "Bad vendor/vendor.json file"
@@ -418,10 +471,23 @@ determineTool() {
             err "For more details see: http://doc.scalingo.com/languages/govendor#configuration"
             exit 1
         fi
-        ver=${GOVERSION:-$(<${vendorJSON} jq -r .scalingo.goVersion)}
+
+        # Determine Go version from vendor/vendor.json if not already set by GOVERSION
+        if [ -z "${ver}" ]; then
+            ver=$(<${vendorJSON} jq -r .scalingo.goVersion)
+            if [ "${ver}" = "null" ] || [ -z "${ver}" ]; then
+                ver=${DefaultGoVersion}
+                go_version_origin="default"
+            else
+                go_version_origin="vendor/vendor.json"
+            fi
+            build_data::set_string "go_version_origin" "${go_version_origin}"
+            build_data::set_string "go_version_requested" "${ver}"
+        fi
+
         warnGoVersionOverride
-        if [ "${ver}" =  "null" -o -z "${ver}" ]; then
-            ver=${DefaultGoVersion}
+
+        if [ "${go_version_origin}" = "default" ]; then
             warn "The 'scalingo.goVersion' field is not specified in 'vendor/vendor.json'."
             warn ""
             warn "Defaulting to ${ver}"
@@ -431,9 +497,11 @@ determineTool() {
         fi
     elif [ -f "${glideYAML}" ]; then
         TOOL="glide"
+        build_data::set_string "go_tool" "${TOOL}"
         setGoVersionFromEnvironment
     elif [ -d "$build/src" -a -n "$(find "$build/src" -mindepth 2 -type f -name '*.go' | sed 1q)" ]; then
         TOOL="gb"
+        build_data::set_string "go_tool" "${TOOL}"
         setGoVersionFromEnvironment
     else
         err "Go modules, dep, Godep, GB or govendor are required. For instructions:"
