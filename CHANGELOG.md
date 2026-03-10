@@ -3,6 +3,25 @@
 ## [Unreleased]
 
 
+## [v225] - 2026-03-10
+
+* Remove support for dep, godep, govendor, glide, and GB dependency managers.
+  Go modules (`go.mod`) is now the only supported dependency management solution.
+  See the [deprecation announcement](https://devcenter.heroku.com/changelog-items/2983) for more information.
+* Remove config vars and features only applicable to legacy dependency managers:
+  `GO_SETUP_GOPATH_IN_IMAGE`, `GO15VENDOREXPERIMENT`, `GLIDE_SKIP_INSTALL`,
+  built-in `migrate` tool installation
+  (use [pre/post compile hooks](https://github.com/heroku/heroku-buildpack-go#prepost-compile-hooks) instead),
+  and Go versions < 1.11 (`go.mod` requires >= go1.11).
+
+## [v224] - 2026-03-06
+
+* Add go1.26.1
+* go1.26 defaults to 1.26.1
+* Add go1.25.8
+* go1.25 defaults to 1.25.8
+* Changed S3 bucket URL to AWS' dual-stack (IPv6 compatible) endpoint
+
 ## [v223] - 2026-02-18
 
 * Vendor buildpack-stdlib instead of fetching from S3
@@ -1190,7 +1209,9 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v223...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v225...main
+[v225]: https://github.com/heroku/heroku-buildpack-go/compare/v224...v225
+[v224]: https://github.com/heroku/heroku-buildpack-go/compare/v223...v224
 [v223]: https://github.com/heroku/heroku-buildpack-go/compare/v222...v223
 [v222]: https://github.com/heroku/heroku-buildpack-go/compare/v221...v222
 [v221]: https://github.com/heroku/heroku-buildpack-go/compare/v220...v221
