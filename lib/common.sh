@@ -1,99 +1,75 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# -----------------------------------------
-# load environment variables
-# allow apps to specify cgo flags. The literal text '${build_dir}' is substituted for the build directory
-DataJSON="${buildpack}/data.json"
-FilesJSON="${buildpack}/files.json"
-goMOD="${build}/go.mod"
+# This is technically redundant, since all consumers of this lib will have enabled these,
+# however, it helps Shellcheck realise the options under which these functions will run.
+set -euo pipefail
+# shellcheck disable=SC2034,SC2154
+DataJSON="${BUILDPACK_DIR}/data.json"
+# shellcheck disable=SC2034,SC2154
+FilesJSON="${BUILDPACK_DIR}/files.json"
+# shellcheck disable=SC2154
+goMOD="${BUILD_DIR}/go.mod"
 
-steptxt="----->"
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-NC='\033[0m' # No Color
-CURL="curl --silent --show-error --location --fail --retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5" # retry for up to 30 seconds
-
-if [ -z "${GO_BUCKET_URL}" ]; then
-    BucketURL="https://heroku-golang-prod.s3.dualstack.us-east-1.amazonaws.com"
-else
-    BucketURL="${GO_BUCKET_URL}"
-fi
+# We use --max-time for improved UX and metrics for hanging downloads compared to relying on the
+# build system timeout. Go tarballs are up to ~70 MB and typically download in a few seconds on
+# Scalingo, so we set relatively low timeouts to reduce delays before retries.
+# We use --no-progress-meter rather than --silent so that retry status messages are printed.
+CURL="curl --no-progress-meter --location --fail --max-time 30 --retry 5 --retry-connrefused --connect-timeout 5"
 
 TOOL=""
-# Default to $SOURCE_VERSION environment variable: http://doc.scalingo.com/app/build-environment
-GO_LINKER_VALUE=${SOURCE_VERSION}
+# Default to $SOURCE_VERSION environment variable: https://doc.scalingo/com/app/build-environment
+# shellcheck disable=SC2034
+GO_LINKER_VALUE="${SOURCE_VERSION:-}"
 
 snapshotBinBefore() {
-  if [ ! -d "${build}/bin" ]; then
-    return 0
-  fi
-  _oifs=$IFS
-  IFS=$'\n'
-  _binBefore=()
-  for f in ${build}/bin/*; do
-    if [ -f $f ]; then
-      _binBefore+=($(shasum $f))
-    fi
-  done
-  IFS=$_oifs
+	if [[ ! -d "${BUILD_DIR}/bin" ]]; then
+		return 0
+	fi
+	_oifs=${IFS}
+	IFS=$'\n'
+	_binBefore=()
+	for f in "${BUILD_DIR}"/bin/*; do
+		if [[ -f "${f}" ]]; then
+			# shellcheck disable=SC2207
+			_binBefore+=("$(shasum "${f}")")
+		fi
+	done
+	IFS=${_oifs}
 }
 
 binDiff() {
-  _oifs=$IFS
-  IFS=$'\n'
-  local binAfter=()
-  for f in ${build}/bin/*; do
-    if [ -f $f ]; then
-      binAfter+=($(shasum $f))
-    fi
-  done
+	_oifs=${IFS}
+	IFS=$'\n'
+	local binAfter=()
+	for f in "${BUILD_DIR}"/bin/*; do
+		if [[ -f "${f}" ]]; then
+			# shellcheck disable=SC2207
+			binAfter+=("$(shasum "${f}")")
+		fi
+	done
 
-  local new=()
-  for a in "${binAfter[@]}"; do
-    local let found=0
+	local new=()
+	for a in "${binAfter[@]}"; do
+		local found=0
 
-    for b in "${_binBefore[@]}"; do
-        if [ "${a}" = "${b}" ]; then
-        let found+=1
-        fi
-    done
+		for b in "${_binBefore[@]}"; do
+			if [[ "${a}" = "${b}" ]]; then
+				((found += 1))
+			fi
+		done
 
-    if [ $found -eq 0 ]; then
-        new+=( "./bin/$(basename $(echo $a | awk '{print $2}' ) )" )
-    fi
-  done
-  IFS=$_oifs
-  echo ${new[@]}
-}
-
-info() {
-    echo -e "${GREEN}       $@${NC}"
-}
-
-warn() {
-    echo -e "${YELLOW} !!    $@${NC}"
-}
-
-err() {
-    echo -e >&2 "${RED} !!    $@${NC}"
-}
-
-step() {
-    echo "$steptxt $@"
-}
-
-start() {
-    echo -n "$steptxt $@... "
-}
-
-finished() {
-    echo "done"
+		if [[ "${found}" -eq 0 ]]; then
+			# shellcheck disable=SC2312
+			new+=("./bin/$(basename "$(echo "${a}" | awk '{print $2}')")")
+		fi
+	done
+	IFS=${_oifs}
+	echo "${new[@]}"
 }
 
 knownFile() {
-    local fileName="${1}"
-    <${FilesJSON} jq -e 'to_entries | map(select(.key == "'${fileName}'")) | any' &> /dev/null
+	local fileName="${1}"
+	<"${FilesJSON}" jq -e 'to_entries | map(select(.key == "'"${fileName}"'")) | any' &>/dev/null
 }
 
 # This method returns the URL to reach a file based on the files.json file.
@@ -108,116 +84,127 @@ getFileURL() {
 }
 
 downloadFile() {
-    local fileName="${1}"
+	local fileName="${1}"
 
-    if ! knownFile ${fileName}; then
-        err ""
-        err "The requested file (${fileName}) is unknown to the buildpack!"
-        err ""
-        err "The buildpack tracks and validates the SHA256 sums of the files"
-        err "it uses. Because the buildpack doesn't know about the file"
-        err "it likely won't be able to obtain a copy and validate the SHA."
-        err ""
-        exit 1
-    fi
+	# shellcheck disable=SC2310
+	if ! knownFile "${fileName}"; then
+		output::error <<-EOF
+			Error: The requested file (${fileName}) is unknown to the buildpack!
 
-    local targetDir="${2}"
-    local xCmd="${3}"
-    local targetFile="${targetDir}/${fileName}"
+			The buildpack tracks and validates the SHA256 sums of the files
+			it uses. Because the buildpack doesn't know about the file
+			it likely won't be able to obtain a copy and validate the SHA.
+		EOF
+		exit 1
+	fi
 
-    mkdir -p "${targetDir}"
-    pushd "${targetDir}" &> /dev/null
-        start "Fetching ${fileName}"
-            ${CURL} -O "${BucketURL}/${fileName}"
-            if [ -n "${xCmd}" ]; then
-                ${xCmd} ${targetFile}
-            fi
-            if ! SHAValid "${fileName}" "${targetFile}"; then
-                err ""
-                err "Downloaded file (${fileName}) sha does not match recorded SHA"
-                err "Unable to continue."
-                err ""
-                exit 1
-            fi
-        finished
-    popd &> /dev/null
+	local targetDir="${2}"
+	local xCmd="${3}"
+	local targetFile="${targetDir}/${fileName}"
+
+	mkdir -p "${targetDir}"
+	pushd "${targetDir}" &>/dev/null || return 1
+	output::step "Fetching ${fileName}"
+	local url
+	url="$(<"${FilesJSON}" jq -r '."'"${fileName}"'".URL')"
+	# shellcheck disable=SC2312
+	${CURL} -o "${fileName}" "${url}" 2>&1 | output::indent
+	# shellcheck disable=SC2310
+	if ! SHAValid "${fileName}" "${targetFile}"; then
+		output::error <<-EOF
+			Error: Downloaded file (${fileName}) SHA does not match recorded SHA.
+
+			Unable to continue.
+		EOF
+		exit 1
+	fi
+	if [[ -n "${xCmd}" ]]; then
+		# shellcheck disable=SC2312
+		${xCmd} "${targetFile}" 2>&1 | output::indent
+	fi
+	popd &>/dev/null || return 1
 }
 
 SHAValid() {
-    local fileName="${1}"
-    local targetFile="${2}"
-    local expected="$(<"${FilesJSON}" jq -r '."'${fileName}'".SHA')"
-    local actual="$(shasum -a256 "${targetFile}" | cut -d \  -f 1)"
-    [ "${actual}" = "${expected}" ]
+	local fileName="${1}"
+	local targetFile="${2}"
+	local expected
+	expected="$(<"${FilesJSON}" jq -r '."'"${fileName}"'".SHA')"
+	local actual
+	# shellcheck disable=SC2312
+	actual="$(shasum -a256 "${targetFile}" | cut -d \  -f 1)"
+	[[ "${actual}" = "${expected}" ]]
 }
 
 ensureFile() {
-    local fileName="${1}"
-    local targetDir="${2}"
-    local xCmd="${3}"
-    local targetFile="${targetDir}/${fileName}"
-    local download="false"
-    if [ ! -f "${targetFile}" ]; then
-        download="true"
-    elif ! SHAValid "${fileName}" "${targetFile}"; then
-        download="true"
-    fi
-    if [ "${download}" = "true" ]; then
-        downloadFile "${fileName}" "${targetDir}" "${xCmd}"
-    fi
+	local fileName="${1}"
+	local targetDir="${2}"
+	local xCmd="${3}"
+	local targetFile="${targetDir}/${fileName}"
+	local download="false"
+	# shellcheck disable=SC2310
+	if [[ ! -f "${targetFile}" ]]; then
+		download="true"
+	elif ! SHAValid "${fileName}" "${targetFile}"; then
+		download="true"
+	fi
+	if [[ "${download}" = "true" ]]; then
+		downloadFile "${fileName}" "${targetDir}" "${xCmd}"
+	fi
 }
 
 addToPATH() {
-    local targetDir="${1}"
-    if echo "${PATH}" | grep -v "${targetDir}" &> /dev/null; then
-        PATH="${targetDir}:${PATH}"
-    fi
+	local targetDir="${1}"
+	if echo "${PATH}" | grep -v "${targetDir}" &>/dev/null; then
+		PATH="${targetDir}:${PATH}"
+	fi
 }
 
 ensureInPath() {
-    local fileName="${1}"
-    local targetDir="${2}"
-    local xCmd="${3:-chmod a+x}"
-    addToPATH "${targetDir}"
-    ensureFile "${fileName}" "${targetDir}" "${xCmd}"
+	local fileName="${1}"
+	local targetDir="${2}"
+	local xCmd="${3:-chmod a+x}"
+	addToPATH "${targetDir}"
+	ensureFile "${fileName}" "${targetDir}" "${xCmd}"
 }
 
 loadEnvDir() {
-    local envFlags=()
-    envFlags+=("CGO_CFLAGS")
-    envFlags+=("CGO_CPPFLAGS")
-    envFlags+=("CGO_CXXFLAGS")
-    envFlags+=("CGO_LDFLAGS")
-    envFlags+=("GO_LINKER_SYMBOL")
-    envFlags+=("GO_LINKER_VALUE")
-    envFlags+=("GOFLAGS")
-    envFlags+=("GOPROXY")
-    envFlags+=("GOPRIVATE")
-    envFlags+=("GONOPROXY")
-    envFlags+=("GOVERSION")
-    envFlags+=("GO_INSTALL_PACKAGE_SPEC")
-    envFlags+=("GO_INSTALL_TOOLS_IN_IMAGE")
-    envFlags+=("GO_SETUP_GOPATH_FOR_MODULE_CACHE")
-    envFlags+=("GO_TEST_SKIP_BENCHMARK")
-    local env_dir="${1}"
-    if [ ! -z "${env_dir}" ]; then
-        mkdir -p "${env_dir}"
-        env_dir=$(cd "${env_dir}/" && pwd)
-        for key in ${envFlags[@]}; do
-            if [ -f "${env_dir}/${key}" ]; then
-                export "${key}=$(cat "${env_dir}/${key}" | sed -e "s:\${build_dir}:${build}:")"
-            fi
-        done
-    fi
+	local envFlags=()
+	envFlags+=("CGO_CFLAGS")
+	envFlags+=("CGO_CPPFLAGS")
+	envFlags+=("CGO_CXXFLAGS")
+	envFlags+=("CGO_LDFLAGS")
+	envFlags+=("GO_LINKER_SYMBOL")
+	envFlags+=("GO_LINKER_VALUE")
+	envFlags+=("GOFLAGS")
+	envFlags+=("GOPROXY")
+	envFlags+=("GOPRIVATE")
+	envFlags+=("GONOPROXY")
+	envFlags+=("GOVERSION")
+	envFlags+=("GO_INSTALL_PACKAGE_SPEC")
+	envFlags+=("GO_INSTALL_TOOLS_IN_IMAGE")
+	envFlags+=("GO_SETUP_GOPATH_FOR_MODULE_CACHE")
+	envFlags+=("GO_TEST_SKIP_BENCHMARK")
+	local env_dir="${1}"
+	if [[ -n "${env_dir}" ]]; then
+		mkdir -p "${env_dir}"
+		env_dir=$(cd "${env_dir}/" && pwd)
+		for key in "${envFlags[@]}"; do
+			if [[ -f "${env_dir}/${key}" ]]; then
+				export "${key}=$(sed -e "s:\${build_dir}:${BUILD_DIR}:" <"${env_dir}/${key}")"
+			fi
+		done
+	fi
 }
 
 clearGitCredHelper() {
-    git config --global --unset credential.helper
+	git config --global --unset credential.helper
 }
 
+# shellcheck disable=SC2016,SC2086,SC2250,SC2292,SC2002,SC2248,SC2312
 setGitCredHelper() {
-    git config --global credential.helper '!#GoGitCredHelper
-    env_dir="'$(cd ${1}/ && pwd)'"
+	git config --global credential.helper '!#GoGitCredHelper
+    env_dir="'"$(cd "${1}"/ && pwd)"'"
     gitCredHelper() {
     #echo "${1}\n" >&2 #debug
     case "${1}" in
@@ -286,104 +273,113 @@ setGitCredHelper() {
 }
 
 supportsGoModules() {
-    local version="${1}"
-    # Ex:      "go1.10.4" | ["go1","10", "4"] | ["1","10","4"]     | [1,10,4]      |  [1]           [10]      == exit 1 (fail)
-    echo "\"${version}\"" | jq -e 'split(".") | map(gsub("go";"")) | map(tonumber) | .[0] >= 1 and .[1] < 11' &> /dev/null
+	local version="${1}"
+	# Ex:      "go1.10.4" | ["go1","10", "4"] | ["1","10","4"]     | [1,10,4]      |  [1]           [10]      == exit 1 (fail)
+	echo "\"${version}\"" | jq -e 'split(".") | map(gsub("go";"")) | map(tonumber) | .[0] >= 1 and .[1] < 11' &>/dev/null
 }
 
 determineTool() {
-    # Check GOVERSION first - it overrides all tool-specific configurations
-    if [ -n "${GOVERSION}" ]; then
-        ver="${GOVERSION}"
-        go_version_origin="GOVERSION"
-        build_data::set_string "go_version_origin" "${go_version_origin}"
-        build_data::set_string "go_version_requested" "${ver}"
-    fi
+	# Check GOVERSION first - it overrides all tool-specific configurations
+	if [[ -n "${GOVERSION:-}" ]]; then
+		ver="${GOVERSION}"
+		go_version_origin="GOVERSION"
+		build_data::set_string "go_version_origin" "${go_version_origin}"
+		build_data::set_string "go_version_requested" "${ver}"
+	fi
 
-    if [ -f "${goMOD}" ]; then
-        TOOL="gomodules"
-        build_data::set_string "go_tool" "${TOOL}"
+	if [[ -f "${goMOD}" ]]; then
+		TOOL="gomodules"
+		build_data::set_string "go_tool" "${TOOL}"
 
-        step ""
-        info "Detected go modules via go.mod"
-        step ""
+		output::step "Detected go modules via go.mod"
 
-        # Determine Go version from go.mod if not already set by GOVERSION
-        if [ -z "${ver}" ]; then
-            ver=$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' ${goMOD})
-            if [ -n "${ver}" ]; then
-                go_version_origin="go.mod (scalingo comment)"
-            else
-                ver=$(awk '{ if ($1 == "go" ) { print "go" $2; exit } }' ${goMOD})
-                if [ -n "${ver}" ]; then
-                    go_version_origin="go.mod"
-                else
-                    ver=${DefaultGoVersion}
-                    go_version_origin="default"
-                fi
-            fi
-            build_data::set_string "go_version_origin" "${go_version_origin}"
-            build_data::set_string "go_version_requested" "${ver}"
-        fi
+		# Determine Go version from go.mod if not already set by GOVERSION
+		if [[ -z "${ver:-}" ]]; then
+			ver=$(awk '{ if ($1 == "//" && $2 == "+scalingo" && $3 == "goVersion" ) { print $4; exit } }' "${goMOD}")
+			if [[ -n "${ver}" ]]; then
+				go_version_origin="go.mod (scalingo comment)"
+			else
+				ver=$(awk '{ if ($1 == "go" ) { print "go" $2; exit } }' "${goMOD}")
+				if [[ -n "${ver}" ]]; then
+					go_version_origin="go.mod"
+				else
+					# shellcheck disable=SC2154
+					ver=${DefaultGoVersion}
+					go_version_origin="default"
+				fi
+			fi
+			build_data::set_string "go_version_origin" "${go_version_origin}"
+			build_data::set_string "go_version_requested" "${ver}"
+		fi
 
-        name=$(awk '{ if ($1 == "module" ) { gsub(/"/, "", $2); print $2; exit } }' < ${goMOD})
-        info "Detected Module Name: ${name}"
-        step ""
-        warnGoVersionOverride
+		name=$(awk '{ if ($1 == "module" ) { gsub(/"/, "", $2); print $2; exit } }' <"${goMOD}")
+		output::step "Detected Module Name: ${name}"
+		warnGoVersionOverride
 
-        if [ "${go_version_origin}" = "default" ]; then
-            warn "The go.mod file for this project does not specify a Go version"
-            warn ""
-            warn "Defaulting to ${ver}"
-            warn ""
-            warn "For more details see: https://doc.scalingo.com/languages/go/gomod#configuration"
-            warn ""
-        fi
+		if [[ "${go_version_origin}" = "default" ]]; then
+			output::warning <<-EOF
+				The go.mod file for this project does not specify a Go version.
 
-        if supportsGoModules "${ver}"; then
-            err "You are using ${ver}, which does not support Go modules"
-            err ""
-            err "Go modules are supported by go1.11 and above."
-            err ""
-            err "Please add/update the comment in your go.mod file to specify a Go version >= go1.11 like so:"
-            err "// +scalingo goVersion ${DefaultGoVersion}"
-            err ""
-            err "Then commit and push again."
-            exit 1
-        fi
-    else
-        local legacy_tool=""
-        if [ -f "${build}/Gopkg.lock" ]; then
-            legacy_tool="dep"
-        elif [ -f "${build}/Godeps/Godeps.json" ]; then
-            legacy_tool="godep"
-        elif [ -f "${build}/vendor/vendor.json" ]; then
-            legacy_tool="govendor"
-        elif [ -f "${build}/glide.yaml" ]; then
-            legacy_tool="glide"
-        elif [ -d "${build}/src" ] && [ -n "$(find "${build}/src" -mindepth 2 -type f -name '*.go' | sed 1q)" ]; then
-            legacy_tool="gb"
-        fi
+				Defaulting to ${ver}
 
-        if [ -n "${legacy_tool}" ]; then
-            build_data::set_string "go_tool" "${legacy_tool}"
-            err "Your app appears to use '${legacy_tool}' for dependency management,"
-            err "but support for ${legacy_tool} has been removed."
-            err ""
-            err "Go modules (go.mod) is now the only supported dependency"
-            err "management solution on Scalingo."
-            err ""
-            err "To migrate, run 'go mod init <module-name>' in your project"
-            err "directory and commit the resulting go.mod file."
-            err ""
-            err "For more details see:"
-            err "https://doc.scalingo.com/languages/go/gomod"
-        else
-            err "A go.mod file is required."
-            err ""
-            err "For help with using Go on Scalingo, see:"
-            err "https://doc.scalingo.com/languages/go/start"
-        fi
-        exit 1
-    fi
+				For more details see:
+				https://doc.scalingo.com/languages/go/gomod
+			EOF
+		fi
+
+		# shellcheck disable=SC2310
+		if supportsGoModules "${ver}"; then
+			output::error <<-EOF
+				Error: You are using ${ver}, which does not support Go modules.
+
+				Go modules are supported by go1.11 and above.
+
+				Please add/update the comment in your go.mod file to specify
+				a Go version >= go1.11 like so:
+				// +scalingo goVersion ${DefaultGoVersion}
+
+				Then commit and push again.
+			EOF
+			exit 1
+		fi
+	else
+		local legacy_tool=""
+		# shellcheck disable=SC2312
+		if [[ -f "${BUILD_DIR}/Gopkg.lock" ]]; then
+			legacy_tool="dep"
+		elif [[ -f "${BUILD_DIR}/Godeps/Godeps.json" ]]; then
+			legacy_tool="godep"
+		elif [[ -f "${BUILD_DIR}/vendor/vendor.json" ]]; then
+			legacy_tool="govendor"
+		elif [[ -f "${BUILD_DIR}/glide.yaml" ]]; then
+			legacy_tool="glide"
+		elif [[ -d "${BUILD_DIR}/src" ]] && [[ -n "$(find "${BUILD_DIR}/src" -mindepth 2 -type f -name '*.go' | sed 1q)" ]]; then
+			legacy_tool="gb"
+		fi
+
+		if [[ -n "${legacy_tool}" ]]; then
+			build_data::set_string "go_tool" "${legacy_tool}"
+			output::error <<-EOF
+				Error: Your app appears to use '${legacy_tool}' for dependency management,
+				but support for ${legacy_tool} has been removed.
+
+				Go modules (go.mod) is now the only supported dependency
+				management solution on Scalingo.
+
+				To migrate, run 'go mod init <module-name>' in your project
+				directory and commit the resulting go.mod file.
+
+				For more details see:
+				https://doc.scalingo.com/languages/go/gomod
+			EOF
+		else
+			output::error <<-EOF
+				Error: A go.mod file is required.
+
+				For help with using Go on Scalingo, see:
+				https://doc.scalingo.com/languages/go/start
+			EOF
+		fi
+		exit 1
+	fi
 }

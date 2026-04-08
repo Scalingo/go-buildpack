@@ -3,6 +3,24 @@
 ## [Unreleased]
 
 
+## [v228] - 2026-04-08
+
+* Add go1.26.2
+* go1.26 defaults to 1.26.2
+* Add go1.25.9
+* go1.25 defaults to 1.25.9
+
+## [v227] - 2026-03-19
+
+* Remove redundant `--retry-max-time` curl option
+* Add ARM64 (linux-arm64) architecture support
+
+## [v226] - 2026-03-16
+
+* Fetch Go binaries directly from upstream sources instead of S3 mirror
+* Improve curl download resilience and timeouts
+* Clean up build output with structured formatting and consistent indentation
+
 ## [v225] - 2026-03-10
 
 * Remove support for dep, godep, govendor, glide, and GB dependency managers.
@@ -1209,7 +1227,10 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v225...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v228...main
+[v228]: https://github.com/heroku/heroku-buildpack-go/compare/v227...v228
+[v227]: https://github.com/heroku/heroku-buildpack-go/compare/v226...v227
+[v226]: https://github.com/heroku/heroku-buildpack-go/compare/v225...v226
 [v225]: https://github.com/heroku/heroku-buildpack-go/compare/v224...v225
 [v224]: https://github.com/heroku/heroku-buildpack-go/compare/v223...v224
 [v223]: https://github.com/heroku/heroku-buildpack-go/compare/v222...v223
