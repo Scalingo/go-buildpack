@@ -108,7 +108,7 @@ ensureGo() {
 	if [[ -d "${goPath}" ]]; then
 		output::step "Using ${goVersion}"
 	else
-		#For a go version change, we delete everything in our namespace
+		# For a go version change, we delete everything in our namespace
 		output::step "New Go Version, clearing old cache"
 		if [[ -d "${GO_CACHE_DIR}/go-path" ]]; then
 			find "${GO_CACHE_DIR}/go-path" ! -perm -u=w -print0 | xargs -r -0 chmod u+w 2>&1
