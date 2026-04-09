@@ -1,4 +1,17 @@
-.PHONY: test test-assets run run-ci sync publish
+.PHONY: lint lint-scripts check-format format test test-parallel run run-ci publish
+
+lint: lint-scripts check-format
+
+lint-scripts:
+	@git ls-files -z --cached --others --exclude-standard 'bin/*' 'sbin/*' '*.sh' \
+		| grep -zv '^test/shunit2\.sh$$' \
+		| xargs -0 shellcheck --check-sourced --color=always
+
+check-format:
+	@shfmt --diff .
+
+format:
+	@shfmt --write --list .
 
 STACK ?= heroku-24
 FIXTURE ?= test/fixtures/mod-basic-go126
@@ -7,129 +20,41 @@ COMPILE_FAILURE_EXIT_CODE ?= 1
 
 # Converts a stack name of `heroku-NN` to its build Docker image tag of `heroku/heroku:NN-build`.
 STACK_IMAGE_TAG := heroku/$(subst -,:,$(STACK))-build
-# TODO: Add buildpack support for arm64 and use the native architecture for improved test performance locally.
-DOCKER_FLAGS := --rm --platform linux/amd64 -v $(PWD):/src:ro
+DOCKER_FLAGS := --rm -v $(PWD):/src:ro
 
-test: test-assets
+test:
 	@echo "Running tests using: STACK=$(STACK) TEST=$(TEST)"
 	@docker run $(DOCKER_FLAGS) "$(STACK_IMAGE_TAG)" \
 		bash -euo pipefail -O dotglob -c '\
 			cd /src; \
 			test/run.sh $(if $(TEST),-- "$(TEST)"); \
-			echo -e "\nTest run was successful!"; \
 		'
-	@echo
 
-test-assets:
-	@echo "Setting up test assets"
-	@sbin/fetch-test-assets
+# Extract test function names from test/run.sh when test-parallel is invoked.
+ifneq ($(filter test-parallel,$(MAKECMDGOALS)),)
+TEST_NAMES := $(shell grep -oE '^test[a-zA-Z0-9_]+' test/run.sh)
+TEST_TARGETS := $(addprefix run-test-, $(TEST_NAMES))
+endif
 
-# Files that still exist in S3 but have been removed from files.json.
-# Passed as ignore arguments so sync-files.sh doesn't fail on the mismatch.
-SYNC_IGNORE := \
-	dep-linux-amd64 \
-	dep-v0.3.1-linux-amd64 \
-	dep-v0.4.0-linux-amd64 \
-	dep-v0.4.1-linux-amd64 \
-	dep-v0.5.0-linux-amd64 \
-	dep-v0.5.1-linux-amd64 \
-	dep-v0.5.2-linux-amd64 \
-	errors-0.8.0.tar.gz \
-	gb-0.4.3.tar.gz \
-	gb-0.4.4-pre.tar.gz \
-	gb-0.4.4.tar.gz \
-	glide-v0.12.3-linux-amd64.tar.gz \
-	glide-v0.13.3-linux-amd64.tar.gz \
-	go.go1.linux-amd64.tar.gz \
-	go1.0.1.linux-amd64.tar.gz \
-	go1.0.2.linux-amd64.tar.gz \
-	go1.0.3.linux-amd64.tar.gz \
-	go1.1.1.linux-amd64.tar.gz \
-	go1.1.2.linux-amd64.tar.gz \
-	go1.1.linux-amd64.tar.gz \
-	go1.10.1.linux-amd64.tar.gz \
-	go1.10.2.linux-amd64.tar.gz \
-	go1.10.3.linux-amd64.tar.gz \
-	go1.10.4.linux-amd64.tar.gz \
-	go1.10.5.linux-amd64.tar.gz \
-	go1.10.6.linux-amd64.tar.gz \
-	go1.10.7.linux-amd64.tar.gz \
-	go1.10.8.linux-amd64.tar.gz \
-	go1.10.linux-amd64.tar.gz \
-	go1.10beta1.linux-amd64.tar.gz \
-	go1.10beta2.linux-amd64.tar.gz \
-	go1.10rc1.linux-amd64.tar.gz \
-	go1.10rc2.linux-amd64.tar.gz \
-	go1.2.1.linux-amd64.tar.gz \
-	go1.2.2.linux-amd64.tar.gz \
-	go1.2.linux-amd64.tar.gz \
-	go1.3.1.linux-amd64.tar.gz \
-	go1.3.2.linux-amd64.tar.gz \
-	go1.3.3.linux-amd64.tar.gz \
-	go1.3.linux-amd64.tar.gz \
-	go1.4.1.linux-amd64.tar.gz \
-	go1.4.2.linux-amd64.tar.gz \
-	go1.4.3.linux-amd64.tar.gz \
-	go1.4.linux-amd64.tar.gz \
-	go1.5.1.linux-amd64.tar.gz \
-	go1.5.2.linux-amd64.tar.gz \
-	go1.5.3.linux-amd64.tar.gz \
-	go1.5.4.linux-amd64.tar.gz \
-	go1.5.linux-amd64.tar.gz \
-	go1.6.1.linux-amd64.tar.gz \
-	go1.6.2.linux-amd64.tar.gz \
-	go1.6.3.linux-amd64.tar.gz \
-	go1.6.4.linux-amd64.tar.gz \
-	go1.6.linux-amd64.tar.gz \
-	go1.7.1.linux-amd64.tar.gz \
-	go1.7.3.linux-amd64.tar.gz \
-	go1.7.4.linux-amd64.tar.gz \
-	go1.7.5.linux-amd64.tar.gz \
-	go1.7.6.linux-amd64.tar.gz \
-	go1.7.linux-amd64.tar.gz \
-	go1.8.1.linux-amd64.tar.gz \
-	go1.8.2.linux-amd64.tar.gz \
-	go1.8.3.linux-amd64.tar.gz \
-	go1.8.4.linux-amd64.tar.gz \
-	go1.8.5.linux-amd64.tar.gz \
-	go1.8.7.linux-amd64.tar.gz \
-	go1.8.linux-amd64.tar.gz \
-	go1.8beta1.linux-amd64.tar.gz \
-	go1.8beta2.linux-amd64.tar.gz \
-	go1.8rc1.linux-amd64.tar.gz \
-	go1.8rc2.linux-amd64.tar.gz \
-	go1.8rc3.linux-amd64.tar.gz \
-	go1.9.1.linux-amd64.tar.gz \
-	go1.9.2.linux-amd64.tar.gz \
-	go1.9.3.linux-amd64.tar.gz \
-	go1.9.4.linux-amd64.tar.gz \
-	go1.9.5.linux-amd64.tar.gz \
-	go1.9.6.linux-amd64.tar.gz \
-	go1.9.7.linux-amd64.tar.gz \
-	go1.9.linux-amd64.tar.gz \
-	go1.9beta1.linux-amd64.tar.gz \
-	go1.9beta2.linux-amd64.tar.gz \
-	go1.9rc1.linux-amd64.tar.gz \
-	go1.9rc2.linux-amd64.tar.gz \
-	godep_linux_amd64 \
-	govendor_linux_amd64 \
-	jq-linux64 \
-	mercurial-3.9.tar.gz \
-	migrate-v3.0.0-linux-amd64.tar.gz \
-	migrate-v3.4.0-linux-amd64.tar.gz \
-	stdlib.sh.v8 \
-	tq-v0.4-linux-amd64 \
-	tq-v0.5-linux-amd64
+# Run all tests in parallel via `make --jobs N --output-sync=recurse test-parallel`.
+# Each test runs in its own container for full isolation.
+test-parallel: $(TEST_TARGETS)
+	@printf "\nAll %d tests passed!\n" $(words $(TEST_TARGETS))
 
-sync:
-	@sbin/sync-files.sh $(SYNC_IGNORE)
+# Wrapper that runs a single test and captures its output for printing as a block.
+# Use `--output-sync=recurse` to prevent interleaving across parallel jobs.
+run-test-%:
+	@output=$$($(MAKE) --no-print-directory test STACK="$(STACK)" TEST="$*" 2>&1); \
+	status=$$?; \
+	printf "\n--- %s ---\n%s\n" "$*" "$$output"; \
+	exit $$status
 
 publish:
 	@bash sbin/publish.sh
 
 define SETUP_BUILDPACK_ENV
 	mkdir -p /tmp/buildpack /tmp/cache /tmp/env; \
-	cp -r /src/{bin,lib,vendor,files.json,data.json} /tmp/buildpack; \
+	cp -r /src/{bin,lib,files.json,data.json} /tmp/buildpack; \
 	cp -r /src/$(FIXTURE) /tmp/build_1; \
 	cd /tmp/buildpack; \
 	unset $$(printenv | cut -d '=' -f 1 | grep -vE "^(HOME|LANG|PATH|STACK)$$");
