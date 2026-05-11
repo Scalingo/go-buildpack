@@ -132,7 +132,6 @@ This is useful when the base package is also the only main package to build.
 If you have adopted the `cmd/<executable name>` structure this won't work and
 you will need to create a [Procfile].
 
-
 ## Using with cgo
 
 The buildpack supports building with C dependencies via [cgo][cgo]. You can set
