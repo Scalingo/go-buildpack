@@ -18,14 +18,6 @@ BUILDPACK_DIR=$(cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")" && pwd)
 
 source "${BUILDPACK_DIR}/lib/output.sh"
 source "${BUILDPACK_DIR}/lib/common.sh"
-source "${BUILDPACK_DIR}/lib/build_data.sh"
-
-compile_start_time=$(build_data::current_unix_realtime)
-
-# Initialise the build data store used to track state across builds (for cache invalidation
-# and messaging when build configuration changes) and also so that `bin/report` can generate
-# a build report that will be consumed by the build system for observability.
-build_data::setup
 
 ARCH=$(dpkg --print-architecture)
 
@@ -213,37 +205,9 @@ FLAGS=(-tags scalingo)
 
 determineTool
 
-# Track the requested version before expansion (for pinned check)
-# shellcheck disable=SC2154
-requested_go_version="${ver}"
-
-# Expand the version and track the resolved version
-# shellcheck disable=SC2310
+# Expand the requested version to a supported Go version.
+# shellcheck disable=SC2154,SC2310
 ver=$(expandVer "${ver}")
-build_data::set_string "go_version" "${ver}"
-
-# Track whether the version was pinned (fully specified), rather than being a release line
-# (e.g. `go1.26`) that expands to that line's latest patch release.
-if [[ "${requested_go_version}" =~ ^(go)?[0-9]+\.[0-9]+$ ]]; then
-	build_data::set_raw "go_version_pinned" "false"
-else
-	build_data::set_raw "go_version_pinned" "true"
-fi
-
-# Track the release line, and whether a newer patch release is available for it
-if [[ "${ver}" =~ ^go([0-9]+\.[0-9]+) ]]; then
-	go_version_major="${BASH_REMATCH[1]}"
-	build_data::set_string "go_version_major" "${go_version_major}"
-
-	latest_patch=$(jq -r --arg line "go${go_version_major}" '.Go.VersionExpansion[$line] // empty' "${DataJSON}")
-	if [[ -n "${latest_patch}" ]]; then
-		if [[ "${ver}" = "${latest_patch}" ]]; then
-			build_data::set_raw "go_version_outdated" "false"
-		else
-			build_data::set_raw "go_version_outdated" "true"
-		fi
-	fi
-fi
 
 # If $GO_LINKER_SYMBOL and GO_LINKER_VALUE are set, tell the linker to DTRT
 if [[ -n "${GO_LINKER_SYMBOL:-}" ]] && [[ -n "${GO_LINKER_VALUE:-}" ]]; then
@@ -259,9 +223,7 @@ fi
 
 reportVer "${ver}"
 
-go_install_start_time=$(build_data::current_unix_realtime)
 ensureGo "${ver}"
-build_data::set_duration "go_install_duration" "${go_install_start_time}"
 
 mkdir -p "${BUILD_DIR}/bin"
 
@@ -312,8 +274,6 @@ setupProcfile() {
 		See https://doc.scalingo.com/platform/app/procfile for more details about Procfiles
 	EOF
 }
-
-dependencies_install_start_time=$(build_data::current_unix_realtime)
 
 cd "${BUILD_DIR}" || exit
 
@@ -373,8 +333,6 @@ if [[ -f bin/go-post-compile ]]; then
 	bin/go-post-compile 2>&1 | output::indent
 fi
 
-build_data::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
-
 _newOrUpdatedBinFiles=$(binDiff)
 output::step "Installed the following binaries:"
 for fyle in ${_newOrUpdatedBinFiles}; do
@@ -406,5 +364,3 @@ t="${t}/.meta"
 echo "TOOL=${TOOL}" >"${t}"
 # shellcheck disable=SC2154
 echo "NAME=${name}" >>"${t}"
-
-build_data::set_duration "total_duration" "${compile_start_time}"
