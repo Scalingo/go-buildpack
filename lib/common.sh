@@ -286,15 +286,17 @@ determineTool() {
 	if [[ -n "${GOVERSION:-}" ]]; then
 		ver="${GOVERSION}"
 		go_version_origin="GOVERSION"
-		build_data::set_string "go_version_origin" "${go_version_origin}"
-		build_data::set_string "go_version_requested" "${ver}"
 	fi
 
 	if [[ -f "${goMOD}" ]]; then
+		# Used by bin/compile when writing build metadata.
+		# shellcheck disable=SC2034
 		TOOL="gomodules"
-		build_data::set_string "go_tool" "${TOOL}"
 
 		output::step "Detected go modules via go.mod"
+
+		local go_directive
+		go_directive=$(awk '{ if ($1 == "go" ) { print $2; exit } }' "${goMOD}")
 
 		# Determine Go version from go.mod if not already set by GOVERSION
 		if [[ -z "${ver:-}" ]]; then
@@ -302,8 +304,8 @@ determineTool() {
 			if [[ -n "${ver}" ]]; then
 				go_version_origin="go.mod (scalingo comment)"
 			else
-				ver=$(awk '{ if ($1 == "go" ) { print "go" $2; exit } }' "${goMOD}")
-				if [[ -n "${ver}" ]]; then
+				if [[ -n "${go_directive}" ]]; then
+					ver="go${go_directive}"
 					go_version_origin="go.mod"
 				else
 					# shellcheck disable=SC2154
@@ -311,8 +313,6 @@ determineTool() {
 					go_version_origin="default"
 				fi
 			fi
-			build_data::set_string "go_version_origin" "${go_version_origin}"
-			build_data::set_string "go_version_requested" "${ver}"
 		fi
 
 		name=$(awk '{ if ($1 == "module" ) { gsub(/"/, "", $2); print $2; exit } }' <"${goMOD}")
@@ -361,7 +361,6 @@ determineTool() {
 		fi
 
 		if [[ -n "${legacy_tool}" ]]; then
-			build_data::set_string "go_tool" "${legacy_tool}"
 			output::error <<-EOF
 				Error: Your app appears to use '${legacy_tool}' for dependency management,
 				but support for ${legacy_tool} has been removed.
