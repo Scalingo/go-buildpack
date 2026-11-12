@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 
+## [v240] - 2026-11-10
+
+* Add go1.27.4
+* go1.27 defaults to 1.27.4
+* Add go1.26.11
+* go1.26 defaults to 1.26.11
+
 ## [v239] - 2026-10-23
 
 - Added metrics for the `go` and `toolchain` directives, Go release line, outdated patch versions and Go workspace usage. ([#700](https://github.com/heroku/heroku-buildpack-go/pull/700))
@@ -1299,7 +1306,8 @@
 
 * [GOPATH naming changed & update godep](https://github.com/heroku/heroku-buildpack-go/pull/82)
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v239...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-go/compare/v240...main
+[v240]: https://github.com/heroku/heroku-buildpack-go/compare/v239...v240
 [v239]: https://github.com/heroku/heroku-buildpack-go/compare/v238...v239
 [v238]: https://github.com/heroku/heroku-buildpack-go/compare/v237...v238
 [v237]: https://github.com/heroku/heroku-buildpack-go/compare/v236...v237
